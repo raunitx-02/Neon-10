@@ -33,38 +33,38 @@ Whether you're an investor, an agency, or a developer looking to build the next 
 Neon 10 comes packed with **22 meticulously crafted tools**, categorized for ultimate seller success:
 
 ### 🔍 Product Research
-- **Black Box**: Advanced product opportunity filtering & discovery.
-- **Xray**: Competitor intelligence tables.
-- **Trendster**: Seasonality and BSR trend tracking visualizations.
+- **Black Box (Amazon Product Research)**: The ultimate product discovery tool. Black Box allows users to apply advanced filters (such as monthly revenue, price, review count, and search volume) to instantly find winning product opportunities hidden in Amazon's massive catalog.
+- **Xray (Market Intelligence)**: A powerful, Chrome extension-style competitor intelligence table. It simulates extracting live data directly from Amazon search results, providing instant estimates on a product's monthly sales, revenue, BSR (Best Sellers Rank), and FBA fees.
+- **Trendster (Seasonality Tracker)**: A visual seasonality and trend analysis tool. It overlays product BSR history with historical pricing and search volume data, allowing sellers to determine if a product is a year-round winner or just a seasonal fad.
 
 ### 🔑 Keyword Research
-- **Cerebro**: Reverse ASIN lookup tool.
-- **Magnet**: Keyword aggregator and search volume analytics.
-- **Frankenstein**: Massive keyword list processor.
-- **Misspellinator**: Discover highly searched, easily ranked misspelled keywords.
+- **Cerebro (Reverse ASIN Lookup)**: The core keyword discovery engine. By entering a competitor's ASIN, Cerebro simulates pulling the exact keywords that the product ranks for, including organic rank, sponsored rank, and estimated search volume.
+- **Magnet (Keyword Aggregator)**: A comprehensive keyword expansion tool. Enter a seed keyword, and Magnet generates thousands of related, high-volume, and long-tail keyword suggestions to help identify untapped traffic sources.
+- **Frankenstein (Keyword Processor)**: A massive keyword list cleaner. It takes thousands of raw keywords and instantly removes duplicates, strips out irrelevant terms, and processes them into a clean, comma-separated list ready to be pasted into the Amazon backend.
+- **Misspellinator (Search Term Optimizer)**: Discover highly searched but easily ranked misspelled keywords. It identifies common customer typos for specific search terms, allowing sellers to rank for them organically with zero competition.
 
 ### 📝 Listing Optimization
-- **Listing Builder**: AI-powered editor with a real-time keyword optimization scoring ring.
-- **Scribbles**: Live text tracking with dynamic keyword checklists.
-- **Index Checker**: Verify Amazon indexing for specific ASINs.
-- **Listing Analyzer**: Comprehensive listing health scoring and visualizations.
+- **Listing Builder (AI-Powered Editor)**: A dynamic listing editor featuring a real-time keyword optimization scoring ring. It guides the user through placing critical keywords into the Title, Bullet Points, and Description, evaluating the listing's potential to rank on page one.
+- **Scribbles (Live Text Tracking)**: A visual text editor with a dynamic keyword checklist. As you write your listing, Scribbles automatically crosses off used keywords and tracks character limits, ensuring no important search terms are left behind.
+- **Index Checker (Visibility Verifier)**: A simulation tool to verify if Amazon's A9 algorithm is actively indexing specific ASINs for crucial keywords. It checks traditional indexing, field-specific indexing, and storefront visibility.
+- **Listing Analyzer (Health Scoring)**: Comprehensive listing health analysis. It generates an immediate "Listing Quality Score" based on image count, title length, bullet point density, and review velocity, paired with visual charts to pinpoint areas of improvement.
 
 ### ⚙️ Operations
-- **Alerts**: Hijacker and listing suppression monitoring.
-- **Follow-Up**: Email automation campaign management.
-- **Inventory Management**: Reorder forecasting and stock tracking.
-- **Inventory Protector**: Prevent inventory wipeouts from malicious coupon abuse.
-- **Refund Genie**: Automated FBA reimbursement tracking.
+- **Alerts (Listing Monitoring)**: A real-time 24/7 monitoring dashboard. It simulates sending instant notifications for critical listing changes, such as a hijacker jumping on the listing, the buy box being lost, or the product dimensions being altered by Amazon.
+- **Follow-Up (Email Automation)**: A visual campaign management tool. It simulates the creation of automated email sequences triggered by specific buyer events (like order delivery), helping sellers passively generate more organic reviews.
+- **Inventory Management (Stock Forecasting)**: Advanced reorder forecasting. It calculates precise reorder dates and quantities based on current sales velocity, lead times, and seasonal spikes, preventing costly stockouts.
+- **Inventory Protector (Coupon Abuse Prevention)**: A crucial defense tool. It simulates setting hard limits on the maximum order quantity a single buyer can purchase, preventing malicious actors or coupon bots from wiping out an entire inventory during a promotion.
+- **Refund Genie (FBA Reimbursements)**: Automated FBA reimbursement tracking. It scans simulated seller data for lost or damaged inventory in Amazon warehouses and generates pre-written reports to claim owed money.
 
 ### 📈 Analytics & Ads
-- **Profits Dashboard**: Top-level P&L and revenue tracking with interactive `Recharts`.
-- **Keyword Tracker**: Daily rank monitoring with sparkline charts.
-- **Market Tracker**: Market share distribution with pie and area charts.
-- **Ads (Adtomic)**: PPC management, bid optimization, and ROI metrics.
+- **Profits Dashboard (Financial Hub)**: The top-level P&L and revenue tracking center. It features interactive `Recharts` graphs to visualize gross revenue, ad spend, FBA fees, COGS (Cost of Goods Sold), and net profit margins over custom date ranges.
+- **Keyword Tracker (Rank Monitoring)**: Daily keyword rank tracking with beautiful sparkline charts. It allows sellers to monitor exactly where their product ranks organically and via PPC for their most critical search terms over time.
+- **Market Tracker (Competitor Share)**: A high-level market share visualization tool. It uses pie and area charts to display how much of the total market revenue a seller controls compared to their top 5 competitors.
+- **Ads (Adtomic) (PPC Optimization)**: A complete PPC (Pay-Per-Click) campaign management simulator. It visualizes ACoS (Advertising Cost of Sales), RoAS (Return on Ad Spend), and CPC (Cost Per Click) metrics, offering automated bid optimization suggestions.
 
 ### 🛠️ Utilities
-- **URL Builder**: Generator for heavily tagged Amazon super URLs.
-- **QR Code Generator**: Fully functional custom QR generator with image export.
+- **URL Builder (Super URL Generator)**: A tool for generating heavily tagged Amazon super URLs (like 2-Step Via Brand, Add-to-Cart, or Buy Together URLs) designed to manipulate search algorithms and boost keyword ranking during product launches.
+- **QR Code Generator (Exportable Graphics)**: A fully functional custom QR generator. It takes any generated Super URL or landing page and instantly creates an exportable, scannable QR code image for product inserts and packaging.
 
 ---
 
