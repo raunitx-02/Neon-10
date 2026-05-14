@@ -23,6 +23,7 @@ const nav = [
       { label: "Black Box", href: "/product-research/black-box", icon: Package },
       { label: "Xray", href: "/product-research/xray", icon: Zap },
       { label: "Trendster", href: "/product-research/trendster", icon: TrendingUp },
+      { label: "BSR Intelligence", href: "/product-research/bsr-intelligence", icon: Target },
     ],
   },
   {
