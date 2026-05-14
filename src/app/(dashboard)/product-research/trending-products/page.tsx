@@ -140,9 +140,31 @@ export default function TrendingProducts() {
                       </div>
                     </div>
                     
-                    <button className="btn-accent" style={{ padding: "8px 16px", fontSize: "13px" }}>
-                      Analysis
-                    </button>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button 
+                        className="btn-accent" 
+                        style={{ padding: "8px 12px", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px" }}
+                        onClick={() => alert(`Analyzing ${product.asin}...`)}
+                      >
+                        <BarChart2 size={14} /> Analysis
+                      </button>
+                      <button 
+                        className="btn-secondary" 
+                        style={{ padding: "8px" }}
+                        onClick={() => window.open(`https://www.amazon.in/dp/${product.asin}`, "_blank")}
+                        title="View on Amazon"
+                      >
+                        <ExternalLink size={14} />
+                      </button>
+                      <button 
+                        className="btn-secondary" 
+                        style={{ padding: "8px" }}
+                        onClick={() => alert("Added to Tracking")}
+                        title="Keep Track"
+                      >
+                        <Target size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

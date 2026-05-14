@@ -57,19 +57,17 @@ export async function GET(request: Request) {
     const formattedProducts = detailData.products.map((item: any, index: number) => {
       const stats = item.stats?.current;
       
-      // Keepa Price Scaling: India prices are often returned * 100
+      // Price logic for India
       let priceVal = stats?.[18] > 0 ? stats[18] : (stats?.[1] > 0 ? stats[1] : stats?.[0]);
-      if (priceVal > 50000 && item.title?.toLowerCase().includes("socks")) priceVal = priceVal / 100; // Heuristic for scaling
-      else if (priceVal > 1000) priceVal = priceVal / 1; // Some categories are raw
-
-      // Safer price logic for India
       const displayPrice = priceVal > 0 ? `₹${(priceVal / (priceVal > 5000 ? 100 : 1)).toLocaleString("en-IN")}` : "₹499";
 
-      // Image Logic - Use Amazon's primary image if CSV fails
+      // Unique Image Logic
       const imgId = item.imagesCSV?.split(",")[0];
-      const imgUrl = imgId ? `https://m.media-amazon.com/images/I/${imgId}` : `https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200`;
+      const imgUrl = imgId 
+        ? `https://m.media-amazon.com/images/I/${imgId}` 
+        : `https://source.unsplash.com/featured/?${encodeURIComponent(item.categoryTree?.[0]?.name || "product")}&sig=${item.asin}`;
 
-      // Rating Logic
+      // Stats Logic
       const rawRating = stats?.[16];
       const displayRating = rawRating > 0 ? (rawRating / 10).toFixed(1) : "4.2";
       const displayReviews = stats?.[17] > 0 ? stats[17] : Math.floor(Math.random() * 1000) + 100;
