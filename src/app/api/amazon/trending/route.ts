@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const categoryId = searchParams.get("category") || "976419031"; // Default to Electronics (India)
+  const categoryId = searchParams.get("category") || "976442031"; // Default to Home & Kitchen (India)
   const apiKey = process.env.KEEPA_API_KEY || "pa8osmtpo6bq3bbf3vgfqmp78p0ifbouv34flbvs51hsjqkb7kg6qjgddpspinlp";
 
   if (!apiKey || apiKey === "YOUR_API_KEY") {
