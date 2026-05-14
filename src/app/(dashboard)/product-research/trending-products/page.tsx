@@ -94,9 +94,9 @@ export default function TrendingProducts() {
     setError(null);
     try {
       const categoryMap: any = {
-        "All": "976419031", // Electronics
+        "All": "2705559031", // Home & Kitchen (Very stable in India)
         "Electronics": "976419031",
-        "Home Office": "976442031", // Home & Kitchen
+        "Home Office": "976442031", // Home & Kitchen sub
         "Sports": "1983396031",
         "Cameras": "1389441031",
         "Tools": "3704992031"
