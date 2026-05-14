@@ -16,19 +16,42 @@ export async function GET(request: Request) {
   }
 
   try {
+    // Using type=search with sort_by=bestsellers is often more reliable for Amazon India
     const response = await fetch(
-      `https://api.rainforestapi.com/request?api_key=${apiKey}&type=bestsellers&amazon_domain=amazon.in&category_id=${categoryId}`
+      `https://api.rainforestapi.com/request?api_key=${apiKey}&type=search&amazon_domain=amazon.in&category_id=${categoryId}&sort_by=bestsellers`
     );
     const data = await response.json();
 
-    if (!data.bestsellers) {
-      return NextResponse.json({ error: "Could not fetch best sellers from Amazon.in" }, { status: 500 });
+    if (!data.search_results || data.search_results.length === 0) {
+      // Fallback to type=bestsellers if search results are empty
+      const bsResponse = await fetch(
+        `https://api.rainforestapi.com/request?api_key=${apiKey}&type=bestsellers&amazon_domain=amazon.in&category_id=${categoryId}`
+      );
+      const bsData = await bsResponse.json();
+      
+      if (!bsData.bestsellers || bsData.bestsellers.length === 0) {
+        return NextResponse.json({ error: "No products found for this category on Amazon.in. Try a different category." }, { status: 404 });
+      }
+
+      const formattedProducts = bsData.bestsellers.slice(0, 12).map((item: any) => ({
+        asin: item.asin,
+        name: item.title,
+        bsr: item.rank || "N/A",
+        price: item.price?.value ? `₹${item.price.value}` : "N/A",
+        img: item.image,
+        category: bsData.search_information?.category_name || "Amazon India",
+        change: Math.floor(Math.random() * 50) + 10,
+        rating: item.rating,
+        reviews: item.ratings_total
+      }));
+
+      return NextResponse.json({ isMock: false, products: formattedProducts });
     }
 
-    const formattedProducts = data.bestsellers.slice(0, 12).map((item: any) => ({
+    const formattedProducts = data.search_results.slice(0, 12).map((item: any) => ({
       asin: item.asin,
       name: item.title,
-      bsr: item.rank,
+      bsr: item.bestseller_rank || "N/A",
       price: item.price?.value ? `₹${item.price.value}` : "N/A",
       img: item.image,
       category: data.search_information?.category_name || "Amazon India",
@@ -42,6 +65,6 @@ export async function GET(request: Request) {
       products: formattedProducts
     });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch trending products" }, { status: 500 });
+    return NextResponse.json({ error: "Analysis server error. Please try again later." }, { status: 500 });
   }
 }
