@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Zap, ArrowUpRight, Target, ExternalLink, Filter, 
   RefreshCw, Star, ShoppingCart, BarChart2
@@ -83,13 +83,39 @@ const products = [
 export default function TrendingProducts() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [liveProducts, setLiveProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const categories = ["All", "Electronics", "Home Office", "Sports", "Cameras", "Tools"];
-  const filteredProducts = activeFilter === "All" ? products : products.filter(p => p.category === activeFilter);
+
+  const fetchTrending = async (cat: string) => {
+    setLoading(true);
+    try {
+      const categoryMap: any = {
+        "All": "electronics",
+        "Electronics": "electronics",
+        "Home Office": "home-and-kitchen",
+        "Sports": "sports",
+        "Cameras": "electronics",
+        "Tools": "tools-and-home-improvement"
+      };
+      const response = await fetch(`/api/amazon/trending?category=${categoryMap[cat]}`);
+      const data = await response.json();
+      setLiveProducts(data.products || []);
+    } catch (error) {
+      console.error("Failed to fetch products");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTrending(activeFilter);
+  }, [activeFilter]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 1000);
+    fetchTrending(activeFilter).then(() => setIsRefreshing(false));
   };
 
   return (
@@ -151,94 +177,101 @@ export default function TrendingProducts() {
       <div style={{ 
         display: "grid", 
         gridTemplateColumns: "repeat(auto-fill, minmax(400px, 1fr))", 
-        gap: "24px" 
+        gap: "24px",
+        minHeight: "400px"
       }}>
-        {filteredProducts.map((product) => (
-          <div key={product.asin} className="glass-card" style={{ 
-            display: "flex", 
-            padding: 0, 
-            overflow: "hidden", 
-            height: "200px" 
-          }}>
-            {/* Image side */}
-            <div style={{ width: "160px", flexShrink: 0, position: "relative" }}>
-              <img 
-                src={product.img} 
-                alt={product.name} 
-                style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-              />
-              <div style={{ 
-                position: "absolute", 
-                top: 8, 
-                left: 8, 
-                background: "rgba(0,0,0,0.7)", 
-                backdropFilter: "blur(4px)",
-                color: "white",
-                padding: "2px 8px",
-                borderRadius: 4,
-                fontSize: 10,
-                fontWeight: 700
-              }}>
-                #{product.bsr}
-              </div>
-            </div>
-
-            {/* Content side */}
-            <div style={{ flex: 1, padding: "20px", display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
-                <span style={{ fontSize: 11, color: "var(--accent)", fontWeight: 700, textTransform: "uppercase" }}>{product.category}</span>
-                <div style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--success)", fontSize: 12, fontWeight: 700 }}>
-                  <ArrowUpRight size={14} /> +{product.change}%
+        {loading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="glass-card" style={{ height: "200px", background: "var(--bg-secondary)", opacity: 0.5, animation: "pulse 1.5s infinite" }} />
+          ))
+        ) : (
+          liveProducts.map((product) => (
+            <div key={product.asin} className="glass-card" style={{ 
+              display: "flex", 
+              padding: 0, 
+              overflow: "hidden", 
+              height: "200px" 
+            }}>
+              {/* Image side */}
+              <div style={{ width: "160px", flexShrink: 0, position: "relative" }}>
+                <img 
+                  src={product.img || "https://images.unsplash.com/photo-1560393464-5c69a73c5770?w=200"} 
+                  alt={product.name} 
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                />
+                <div style={{ 
+                  position: "absolute", 
+                  top: 8, 
+                  left: 8, 
+                  background: "rgba(0,0,0,0.7)", 
+                  backdropFilter: "blur(4px)",
+                  color: "white",
+                  padding: "2px 8px",
+                  borderRadius: 4,
+                  fontSize: 10,
+                  fontWeight: 700
+                }}>
+                  #{product.bsr}
                 </div>
               </div>
 
-              <h3 style={{ 
-                fontSize: 15, 
-                fontWeight: 700, 
-                color: "var(--text-primary)", 
-                marginBottom: 8,
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                lineHeight: 1.3
-              }}>
-                {product.name}
-              </h3>
+              {/* Content side */}
+              <div style={{ flex: 1, padding: "20px", display: "flex", flexDirection: "column" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                  <span style={{ fontSize: 11, color: "var(--accent)", fontWeight: 700, textTransform: "uppercase" }}>{product.category}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--success)", fontSize: 12, fontWeight: 700 }}>
+                    <ArrowUpRight size={14} /> +{product.change}%
+                  </div>
+                </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "auto" }}>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>{product.price}</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--text-muted)" }}>
-                  <Star size={12} fill="var(--warning)" color="var(--warning)" /> {product.rating} ({product.reviews.toLocaleString()})
+                <h3 style={{ 
+                  fontSize: 15, 
+                  fontWeight: 700, 
+                  color: "var(--text-primary)", 
+                  marginBottom: 8,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  lineHeight: 1.3
+                }}>
+                  {product.name}
+                </h3>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "auto" }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>{product.price}</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--text-muted)" }}>
+                    <Star size={12} fill="var(--warning)" color="var(--warning)" /> {product.rating || "4.5"} ({product.reviews?.toLocaleString() || "0"})
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                  <button 
+                    className="btn-accent" 
+                    style={{ flex: 1, padding: "8px", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                    onClick={() => alert(`Analyzing ${product.asin}...`)}
+                  >
+                    <BarChart2 size={14} /> Analysis
+                  </button>
+                  <button 
+                    className="btn-ghost" 
+                    style={{ padding: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}
+                    onClick={() => window.open(`https://www.amazon.com/dp/${product.asin}`, "_blank")}
+                  >
+                    <ExternalLink size={14} />
+                  </button>
+                  <button 
+                    className="btn-ghost" 
+                    style={{ padding: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}
+                    onClick={() => alert("Added to Tracking")}
+                  >
+                    <Target size={14} />
+                  </button>
                 </div>
               </div>
-
-              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                <button 
-                  className="btn-accent" 
-                  style={{ flex: 1, padding: "8px", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
-                  onClick={() => alert(`Analyzing ${product.asin}...`)}
-                >
-                  <BarChart2 size={14} /> Analysis
-                </button>
-                <button 
-                  className="btn-ghost" 
-                  style={{ padding: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}
-                  onClick={() => window.open(`https://www.amazon.com/dp/${product.asin}`, "_blank")}
-                >
-                  <ExternalLink size={14} />
-                </button>
-                <button 
-                  className="btn-ghost" 
-                  style={{ padding: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}
-                  onClick={() => alert("Added to Tracking")}
-                >
-                  <Target size={14} />
-                </button>
-              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       <style jsx>{`
@@ -248,6 +281,10 @@ export default function TrendingProducts() {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 0.3; }
         }
       `}</style>
     </div>

@@ -64,41 +64,41 @@ export default function BsrIntelligence() {
   const [scanStatus, setScanStatus] = useState("");
   const [searchResult, setSearchResult] = useState<any>(null);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!asin) return;
     setIsScanning(true);
     setSearchResult(null);
     
-    // Simulate "Live" Amazon Scanning process
-    const steps = [
-      "Establishing secure connection to Amazon SP-API...",
-      "Resolving ASIN marketplace nodes...",
-      "Fetching real-time Buy Box data...",
-      "Parsing Best Seller Rank from Category Hierarchy...",
-      "Calculating 24h trend velocity...",
-      "Success! Data synchronized."
-    ];
+    setScanStatus("Establishing secure connection to Amazon SP-API...");
+    
+    try {
+      const response = await fetch(`/api/amazon/bsr?asin=${asin}`);
+      const data = await response.json();
 
-    let currentStep = 0;
-    const interval = setInterval(() => {
-      setScanStatus(steps[currentStep]);
-      currentStep++;
-      if (currentStep >= steps.length) {
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsScanning(false);
-          setSearchResult({
-            asin: asin.toUpperCase(),
-            name: "Premium Wireless Earbuds Pro",
-            bsr: 620,
-            prevBsr: 840,
-            category: "Electronics > Headphones",
-            lastUpdate: "Just now",
-            velocity: "+15.4%"
-          });
-        }, 800);
+      if (data.error) {
+        setScanStatus(`Error: ${data.error}`);
+        setIsScanning(false);
+        return;
       }
-    }, 600);
+
+      setScanStatus("Parsing Marketplace Data...");
+      setTimeout(() => {
+        setIsScanning(false);
+        setSearchResult({
+          asin: data.asin,
+          name: data.name,
+          bsr: data.bsr,
+          category: data.category,
+          price: data.price,
+          velocity: data.velocity,
+          isMock: data.isMock
+        });
+      }, 1000);
+
+    } catch (error) {
+      setScanStatus("Connection Failed. Check your internet.");
+      setIsScanning(false);
+    }
   };
 
   return (
