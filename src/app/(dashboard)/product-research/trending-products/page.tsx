@@ -86,6 +86,7 @@ export default function TrendingProducts() {
   const [liveProducts, setLiveProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
 
   const categories = ["All", "Electronics", "Home Office", "Sports", "Cameras", "Tools"];
 
@@ -106,7 +107,9 @@ export default function TrendingProducts() {
       
       if (data.error) {
         setError(data.error);
-        setLiveProducts([]);
+        setDebugInfo(data.debug || null);
+        setLoading(false);
+        return;
       } else {
         setLiveProducts(data.products || []);
       }
@@ -196,7 +199,24 @@ export default function TrendingProducts() {
         ) : error ? (
           <div className="glass-card" style={{ padding: "40px", textAlign: "center", border: "1px dashed var(--error)" }}>
              <div style={{ fontSize: "16px", fontWeight: 600, color: "var(--error)", marginBottom: 8 }}>Analysis Error</div>
-             <div style={{ fontSize: "14px", color: "var(--text-secondary)" }}>{error}</div>
+             <p style={{ color: "var(--text-muted)", fontSize: "14px", marginBottom: "24px" }}>
+              {error}
+            </p>
+            {debugInfo && (
+              <div style={{ 
+                background: "rgba(0,0,0,0.2)", 
+                padding: "12px", 
+                borderRadius: "8px", 
+                fontSize: "11px", 
+                fontFamily: "monospace", 
+                color: "var(--accent)", 
+                marginBottom: "20px",
+                maxWidth: "100%",
+                overflowX: "auto" 
+              }}>
+                <strong>Technical Detail:</strong> {debugInfo}
+              </div>
+            )}
              <button 
                className="btn-accent" 
                style={{ marginTop: 20 }}
