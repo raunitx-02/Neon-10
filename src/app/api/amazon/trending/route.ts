@@ -26,30 +26,30 @@ export async function GET(request: Request) {
 
     let asins = data.asinList?.slice(0, 10) || [];
 
-    // 2. Ultra-Robust Fallback: If bestsellers are empty, search for ANY products in that category sorted by sales rank
+    // 2. Robust Fallback: Keyword search in India marketplace sorted by rank
     if (asins.length === 0) {
-      // type=product with sort=[[7,0]] (Sales Rank, ASC)
+      // Map category IDs back to search terms for fallback
+      const catTerms: any = {
+        "976442031": "home kitchen",
+        "976419031": "electronics",
+        "1983396031": "sports",
+        "1389441031": "camera",
+        "3704992031": "tools"
+      };
+      const term = catTerms[categoryId] || "trending";
+      
       const searchResponse = await fetch(
-        `https://api.keepa.com/search?key=${apiKey}&domain=10&type=product&category=${categoryId}&sort=[[7,0]]`
+        `https://api.keepa.com/search?key=${apiKey}&domain=10&type=product&term=${term}`
       );
       const searchData = await searchResponse.json();
       asins = searchData.result?.slice(0, 10) || [];
     }
 
     if (asins.length === 0) {
-      // Last ditch effort: Search broad trending term
-      const finalResponse = await fetch(
-        `https://api.keepa.com/search?key=${apiKey}&domain=10&type=product&term=trending`
-      );
-      const finalData = await finalResponse.json();
-      asins = finalData.result?.slice(0, 10) || [];
+      return NextResponse.json({ error: "Amazon India data is currently restricted. Please try another category." }, { status: 404 });
     }
 
-    if (asins.length === 0) {
-      return NextResponse.json({ error: "Amazon India data is currently restricted. Please try another category or check back in a few minutes." }, { status: 404 });
-    }
-
-    // 3. Get Details for these ASINs
+    // 3. Get Details
     const detailResponse = await fetch(
       `https://api.keepa.com/product?key=${apiKey}&domain=10&asin=${asins.join(",")}&stats=1`
     );
@@ -74,6 +74,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ isMock: false, products: formattedProducts });
   } catch (error) {
     console.error("Trending API Error:", error);
-    return NextResponse.json({ error: "Keepa API Gateway Error. Please try again later." }, { status: 500 });
+    return NextResponse.json({ error: "Keepa API Error. Please try again." }, { status: 500 });
   }
 }
