@@ -8,6 +8,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, BarChart, Bar
 } from "recharts";
+import { parseKeepaCsv, KEEPA_INDICES } from "@/lib/keepaUtils";
 
 const mockBsrHistory = [
   { day: "May 01", rank: 1240 },
@@ -69,10 +70,10 @@ export default function BsrIntelligence() {
     setIsScanning(true);
     setSearchResult(null);
     
-    setScanStatus("Establishing secure connection to Amazon SP-API...");
+    setScanStatus("Establishing secure connection to Keepa Data Lake...");
     
     try {
-      const response = await fetch(`/api/amazon/bsr?asin=${asin}`);
+      const response = await fetch(`/api/amazon/keepa?asin=${asin}`);
       const data = await response.json();
 
       if (data.error) {
@@ -81,19 +82,23 @@ export default function BsrIntelligence() {
         return;
       }
 
-      setScanStatus("Parsing Marketplace Data...");
-      setTimeout(() => {
-        setIsScanning(false);
-        setSearchResult({
-          asin: data.asin,
-          name: data.name,
-          bsr: data.bsr,
-          category: data.category,
-          price: data.price,
-          velocity: data.velocity,
-          isMock: data.isMock
-        });
-      }, 1000);
+      setScanStatus("Parsing Marketplace History...");
+      
+      // Parse 14-day history for the chart
+      const bsrHistory = parseKeepaCsv(data.csv?.[KEEPA_INDICES.SALES_RANK]).slice(-14);
+
+      setSearchResult({
+        asin: data.asin,
+        name: data.title,
+        bsr: data.bsr,
+        category: data.category,
+        price: data.price,
+        rating: data.rating,
+        reviews: data.reviews,
+        history: bsrHistory,
+        isMock: data.isMock
+      });
+      setIsScanning(false);
 
     } catch (error) {
       setScanStatus("Connection Failed. Check your internet.");
@@ -214,12 +219,12 @@ export default function BsrIntelligence() {
 
           <div className="glass-card" style={{ padding: "24px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700 }}>Rank History (14 Days)</h3>
-              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Lower is better</div>
+              <h3 style={{ fontSize: 16, fontWeight: 700 }}>Rank History (Last 14 Updates)</h3>
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Lower rank is better performance</div>
             </div>
             <div style={{ height: "240px" }}>
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={mockBsrHistory}>
+                <AreaChart data={searchResult.history}>
                   <defs>
                     <linearGradient id="colorRank" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.3}/>
@@ -227,14 +232,16 @@ export default function BsrIntelligence() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                  <XAxis dataKey="day" hide />
-                  <YAxis reversed domain={['auto', 'auto']} hide />
+                  <XAxis dataKey="date" tick={{ fill: "var(--text-muted)", fontSize: 10 }} />
+                  <YAxis reversed domain={['auto', 'auto']} tick={{ fill: "var(--text-muted)", fontSize: 10 }} axisLine={false} tickLine={false} />
                   <Tooltip 
                     contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '12px' }}
+                    labelStyle={{ fontWeight: 700, marginBottom: 4 }}
                   />
                   <Area 
                     type="monotone" 
-                    dataKey="rank" 
+                    dataKey="value" 
+                    name="BSR Rank"
                     stroke="var(--accent)" 
                     strokeWidth={3}
                     fillOpacity={1} 

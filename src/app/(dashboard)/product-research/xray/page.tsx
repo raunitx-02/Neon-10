@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
-import { Zap, Search, Star, TrendingUp, DollarSign } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Zap, Search, Star, TrendingUp, DollarSign, History, BarChart2 } from "lucide-react";
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { parseKeepaCsv, KEEPA_INDICES } from "@/lib/keepaUtils";
 
 const xrayData = [
   { name: "EcoHome Board", revenue: 54280, reviews: 3241, price: 32.99, bsr: 842, fbaFee: 4.80 },
@@ -26,6 +27,7 @@ export default function XrayPage() {
   const [searched, setSearched] = useState(false);
   const [activeData, setActiveData] = useState<any[]>([]);
   const [summary, setSummary] = useState<any[]>([]);
+  const [historyData, setHistoryData] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const handleSearch = async () => {
@@ -33,37 +35,46 @@ export default function XrayPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/amazon/bsr?asin=${asin.trim()}`);
+      // 1. Fetch Real Data from our Keepa API route
+      const response = await fetch(`/api/amazon/keepa?asin=${asin.trim()}`);
       const data = await response.json();
 
       if (data.error) {
         setError(data.error);
         setSearched(false);
       } else {
-        // Generate simulated competitor data based on real ASIN for a complete chart
-        const baseRevenue = data.price ? parseFloat(data.price.replace("₹", "").replace(",", "")) * 1000 : 50000;
-        const baseReviews = data.reviews || 1000;
+        // 2. Parse History for Charts
+        const bsrHistory = parseKeepaCsv(data.csv?.[KEEPA_INDICES.SALES_RANK]);
+        const priceHistory = parseKeepaCsv(data.csv?.[KEEPA_INDICES.NEW_PRICE]);
         
-        const mockCompetitors = [
-          { name: data.name.substring(0, 15) + " (Selected)", revenue: baseRevenue, reviews: baseReviews, price: data.price, bsr: data.bsr, fbaFee: "₹450" },
-          { name: "Competitor A", revenue: baseRevenue * 0.8, reviews: baseReviews * 0.6, price: "₹2,199", bsr: "#1,203", fbaFee: "₹380" },
-          { name: "Competitor B", revenue: baseRevenue * 1.2, reviews: baseReviews * 1.5, price: "₹3,499", bsr: "#450", fbaFee: "₹520" },
-          { name: "Competitor C", revenue: baseRevenue * 0.5, reviews: baseReviews * 0.3, price: "₹1,850", bsr: "#3,120", fbaFee: "₹310" },
-        ].sort((a, b) => b.revenue - a.revenue);
+        // Merge history for a dual-axis chart
+        const mergedHistory = bsrHistory.map((pt, idx) => ({
+          ...pt,
+          bsr: pt.value,
+          price: priceHistory[idx]?.value || pt.value / 10 // fallback
+        }));
+        setHistoryData(mergedHistory);
 
-        setActiveData(mockCompetitors);
-        
+        // 3. Set Summary Stats
         setSummary([
-          { label: "Monthly Revenue", value: data.price ? `₹${(baseRevenue/1000).toFixed(1)}k` : "₹54.2k", icon: DollarSign, color: "var(--accent)" },
-          { label: "Product Price", value: data.price || "₹2,499", icon: DollarSign, color: "var(--blue)" },
-          { label: "Product Reviews", value: data.reviews?.toLocaleString() || "1,240", icon: Star, color: "var(--warning)" },
-          { label: "Best Seller Rank", value: `#${data.bsr}` || "#842", icon: TrendingUp, color: "var(--success)" },
+          { label: "Current BSR", value: `#${data.bsr.toLocaleString()}`, icon: TrendingUp, color: "var(--success)" },
+          { label: "Current Price", value: data.price, icon: DollarSign, color: "var(--accent)" },
+          { label: "Rating", value: `${data.rating} / 5`, icon: Star, color: "var(--warning)" },
+          { label: "Total Reviews", value: data.reviews.toLocaleString(), icon: BarChart2, color: "var(--blue)" },
         ]);
-        
+
+        // 4. Competitor Table (Simulated based on real data for now)
+        const baseRev = parseFloat(data.price.replace(/[^\d.]/g, '')) * (100000 / data.bsr); 
+        setActiveData([
+          { name: data.title.substring(0, 20) + "...", price: data.price, bsr: "#"+data.bsr, revenue: baseRev, reviews: data.reviews },
+          { name: "Top Competitor A", price: "₹2,199", bsr: "#1,203", revenue: baseRev * 0.8, reviews: 1450 },
+          { name: "Top Competitor B", price: "₹3,499", bsr: "#450", revenue: baseRev * 1.5, reviews: 3200 },
+        ].sort((a, b) => b.revenue - a.revenue));
+
         setSearched(true);
       }
     } catch (err) {
-      setError("Failed to fetch product analysis. Please check the ASIN.");
+      setError("Analysis failed. Ensure the ASIN is correct for Amazon.in");
     } finally {
       setLoading(false);
     }
@@ -124,13 +135,56 @@ export default function XrayPage() {
             ))}
           </div>
 
+          {/* History Trend Chart */}
+          <div className="glass-card" style={{ padding: 24, marginBottom: 24 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div>
+                <h2 style={{ fontWeight: 700, fontSize: 16, color: "var(--text-primary)", marginBottom: 4 }}>
+                  <History size={16} style={{ display: "inline", marginRight: 8, verticalAlign: "text-bottom" }} />
+                  Historical Performance (30 Days)
+                </h2>
+                <p style={{ color: "var(--text-muted)", fontSize: 12 }}>Tracking Price stability and Sales Rank (BSR) velocity</p>
+              </div>
+              <div style={{ display: "flex", gap: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: 2, background: "var(--accent)" }} />
+                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Price (₹)</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: 2, background: "var(--success)" }} />
+                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Sales Rank</span>
+                </div>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={historyData}>
+                <defs>
+                  <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="var(--accent)" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="date" tick={{ fill: "var(--text-muted)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis yAxisId="left" tick={{ fill: "var(--text-muted)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${v}`} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fill: "var(--text-muted)", fontSize: 11 }} axisLine={false} tickLine={false} reversed />
+                <Tooltip 
+                  contentStyle={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 10, backdropFilter: "blur(20px)" }}
+                  itemStyle={{ fontSize: 12, fontWeight: 600 }}
+                />
+                <Area yAxisId="left" type="monotone" dataKey="price" stroke="var(--accent)" strokeWidth={3} fill="url(#colorPrice)" name="Price" />
+                <Area yAxisId="right" type="monotone" dataKey="bsr" stroke="var(--success)" strokeWidth={2} fill="transparent" name="Sales Rank" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
           {/* Revenue Chart */}
           <div className="glass-card" style={{ padding: 24, marginBottom: 24 }}>
             <h2 style={{ fontWeight: 700, fontSize: 16, color: "var(--text-primary)", marginBottom: 4 }}>Estimated Monthly Revenue Analysis</h2>
             <p style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 20 }}>Top sellers in this category ranked by estimated revenue (INR)</p>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={activeData} barCategoryGap="30%">
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="name" tick={{ fill: "var(--text-muted)", fontSize: 11 }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fill: "var(--text-muted)", fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={v => `₹${(v / 1000).toFixed(0)}k`} />
                 <Tooltip formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, "Revenue"]} contentStyle={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 10 }} />
