@@ -24,6 +24,7 @@ const nav = [
       { label: "Xray", href: "/product-research/xray", icon: Zap },
       { label: "Trendster", href: "/product-research/trendster", icon: TrendingUp },
       { label: "BSR Intelligence", href: "/product-research/bsr-intelligence", icon: Target },
+      { label: "Trending Products", href: "/product-research/trending-products", icon: Zap },
     ],
   },
   {

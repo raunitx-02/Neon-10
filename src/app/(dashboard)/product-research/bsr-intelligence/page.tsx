@@ -247,66 +247,6 @@ export default function BsrIntelligence() {
         </div>
       )}
 
-      {/* Trending Section */}
-      <section>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-          <div>
-            <h2 style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-primary)" }}>Trending Best Sellers</h2>
-            <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>High-velocity products currently dominating Amazon charts</p>
-          </div>
-          <button className="btn-ghost" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            Refresh Trends <Zap size={14} />
-          </button>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" }}>
-          {trendingProducts.map((product) => (
-            <div key={product.asin} className="stat-card" style={{ padding: 0 }}>
-              <div style={{ position: "relative" }}>
-                <img src={product.img} alt={product.name} style={{ width: "100%", height: "160px", objectFit: "cover" }} />
-                <div style={{ position: "absolute", top: 12, right: 12 }}>
-                  <div className="badge badge-success" style={{ background: "rgba(48, 209, 88, 0.9)", color: "white" }}>
-                    #{product.bsr} Rank
-                  </div>
-                </div>
-              </div>
-              <div style={{ padding: "20px" }}>
-                <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600, marginBottom: 4 }}>{product.category}</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12, height: "44px", overflow: "hidden" }}>
-                  {product.name}
-                </div>
-                
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--accent)" }}>{product.price}</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "var(--success)", fontWeight: 700 }}>
-                    <ArrowUpRight size={16} /> +{product.change}% Velocity
-                  </div>
-                </div>
-                
-                <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
-                  <button className="btn-accent" style={{ flex: 1, padding: "8px", fontSize: 12 }}>
-                    Full Analysis
-                  </button>
-                  <button className="btn-ghost" style={{ padding: "8px", display: "flex", alignItems: "center" }}>
-                    <Target size={14} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <style jsx global>{`
-        @keyframes loading-bar {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        @keyframes progress-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
     </div>
   );
 }
