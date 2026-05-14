@@ -4,7 +4,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const asin = searchParams.get("asin");
   const domain = searchParams.get("domain") || "10"; // 10 is Amazon.in
-  const apiKey = process.env.KEEPA_API_KEY;
+  const apiKey = process.env.KEEPA_API_KEY || "pa8osmtpo6bq3bbf3vgfqmp78p0ifbouv34flbvs51hsjqkb7kg6qjgddpspinlp";
 
   if (!asin) {
     return NextResponse.json({ error: "ASIN is required" }, { status: 400 });
