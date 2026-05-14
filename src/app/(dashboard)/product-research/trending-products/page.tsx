@@ -85,11 +85,13 @@ export default function TrendingProducts() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [liveProducts, setLiveProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const categories = ["All", "Electronics", "Home Office", "Sports", "Cameras", "Tools"];
 
   const fetchTrending = async (cat: string) => {
     setLoading(true);
+    setError(null);
     try {
       const categoryMap: any = {
         "All": "electronics",
@@ -101,8 +103,15 @@ export default function TrendingProducts() {
       };
       const response = await fetch(`/api/amazon/trending?category=${categoryMap[cat]}`);
       const data = await response.json();
-      setLiveProducts(data.products || []);
-    } catch (error) {
+      
+      if (data.error) {
+        setError(data.error);
+        setLiveProducts([]);
+      } else {
+        setLiveProducts(data.products || []);
+      }
+    } catch (err) {
+      setError("Failed to connect to the analysis server.");
       console.error("Failed to fetch products");
     } finally {
       setLoading(false);
@@ -176,7 +185,7 @@ export default function TrendingProducts() {
       {/* Grid */}
       <div style={{ 
         display: "grid", 
-        gridTemplateColumns: "repeat(auto-fill, minmax(400px, 1fr))", 
+        gridTemplateColumns: error ? "1fr" : "repeat(auto-fill, minmax(400px, 1fr))", 
         gap: "24px",
         minHeight: "400px"
       }}>
@@ -184,6 +193,22 @@ export default function TrendingProducts() {
           Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="glass-card" style={{ height: "200px", background: "var(--bg-secondary)", opacity: 0.5, animation: "pulse 1.5s infinite" }} />
           ))
+        ) : error ? (
+          <div className="glass-card" style={{ padding: "40px", textAlign: "center", border: "1px dashed var(--error)" }}>
+             <div style={{ fontSize: "16px", fontWeight: 600, color: "var(--error)", marginBottom: 8 }}>Analysis Error</div>
+             <div style={{ fontSize: "14px", color: "var(--text-secondary)" }}>{error}</div>
+             <button 
+               className="btn-accent" 
+               style={{ marginTop: 20 }}
+               onClick={() => fetchTrending(activeFilter)}
+             >
+               Try Again
+             </button>
+          </div>
+        ) : liveProducts.length === 0 ? (
+          <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "40px" }}>
+            <p style={{ color: "var(--text-secondary)" }}>No trending products found for this category.</p>
+          </div>
         ) : (
           liveProducts.map((product) => (
             <div key={product.asin} className="glass-card" style={{ 
