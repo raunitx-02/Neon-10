@@ -61,9 +61,20 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export default function DashboardPage() {
+export default function DashboardPage({ searchParams }: { searchParams: { error?: string } }) {
   return (
     <div>
+      {searchParams.error === "upgrade_required" && (
+        <div style={{ background: "var(--warning-muted)", border: "1px solid var(--warning)", borderRadius: 12, padding: "14px 20px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--warning)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <span style={{ fontWeight: 800 }}>!</span>
+          </div>
+          <div>
+            <div style={{ fontWeight: 700, color: "var(--warning)", marginBottom: 2 }}>Upgrade Required</div>
+            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>You need a higher plan tier to access this feature. Please upgrade your account to unlock this module.</div>
+          </div>
+        </div>
+      )}
       <div className="page-header">
         <div>
           <h1 className="page-title">Profits Dashboard</h1>

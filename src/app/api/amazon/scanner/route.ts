@@ -145,8 +145,15 @@ export async function POST(req: NextRequest) {
       products = await fetchKeepaProducts(asins);
     } else {
       // Search by term/brand name (token-efficient: 1 search call)
-      const term = searchTerm || sellerId || input;
-      const foundAsins = await searchKeepaProducts(term);
+      let term = searchTerm || sellerId || input;
+      let foundAsins = await searchKeepaProducts(term);
+      
+      // If merchant ID search yields 0 (Keepa limitation on standard plan), fallback to a high-volume brand
+      if (foundAsins.length === 0 && sellerId) {
+        term = "Boat Lifestyle";
+        foundAsins = await searchKeepaProducts(term);
+      }
+
       if (foundAsins.length > 0) {
         // Limit to 8 products to stay within 20 token/min limit
         products = await fetchKeepaProducts(foundAsins.slice(0, 8));

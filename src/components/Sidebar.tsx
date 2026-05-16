@@ -6,9 +6,36 @@ import {
   LayoutDashboard, Search, KeyRound, FileText, Settings, BarChart3,
   Wrench, ChevronRight, ChevronLeft, Bell, Package, TrendingUp,
   ShieldCheck, RefreshCcw, Mail, Boxes, Zap, Cpu, QrCode, Link2,
-  Sparkles, Target, BookOpen, FlaskConical, IndianRupee, Truck, ScanLine
+  Sparkles, Target, BookOpen, FlaskConical, IndianRupee, Truck, ScanLine, Lock
 } from "lucide-react";
 import clsx from "clsx";
+
+const PLAN_ACCESS: Record<string, string[]> = {
+  Starter: [
+    "/dashboard",
+    "/product-research/black-box",
+    "/keywords/magnet",
+    "/listing/builder",
+    "/tools/gst-calculator",
+    "/tools/logistics-estimator",
+    "/tools/url-builder",
+    "/tools/qr-generator"
+  ],
+  Growth: [
+    "/dashboard",
+    "/product-research/black-box",
+    "/product-research/xray",
+    "/keywords/magnet",
+    "/keywords/cerebro",
+    "/listing/builder",
+    "/tools/gst-calculator",
+    "/tools/logistics-estimator",
+    "/tools/url-builder",
+    "/tools/qr-generator",
+    "/tools/scanner"
+  ],
+  Diamond: [] // Diamond has everything
+};
 
 const nav = [
   {
@@ -80,7 +107,7 @@ const nav = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ plan = "Starter" }: { plan?: string }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>(["Product Research", "Keywords", "Listing Optimization", "Operations", "Analytics & Ads", "Tools"]);
@@ -92,6 +119,7 @@ export default function Sidebar() {
   };
 
   const isActive = (href: string) => pathname === href;
+  const hasAccess = (href: string) => plan === "Diamond" || (PLAN_ACCESS[plan] && PLAN_ACCESS[plan].includes(href));
 
   return (
     <aside
@@ -186,26 +214,32 @@ export default function Sidebar() {
       <nav style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "12px 10px" }}>
         {nav.map((item) => {
           if (!item.children) {
+            const access = hasAccess(item.href!);
             return (
-              <Link key={item.href} href={item.href!} style={{ textDecoration: "none" }}>
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: collapsed ? "10px 14px" : "10px 12px",
-                  borderRadius: 10,
-                  marginBottom: 2,
-                  cursor: "pointer",
-                  justifyContent: collapsed ? "center" : "flex-start",
-                  background: isActive(item.href!) ? "var(--accent-muted)" : "transparent",
-                  border: isActive(item.href!) ? "1px solid var(--border-hover)" : "1px solid transparent",
-                  color: isActive(item.href!) ? "var(--accent)" : "var(--text-secondary)",
-                  transition: "all 0.2s",
-                }}>
-                  <item.icon size={18} style={{ flexShrink: 0 }} />
-                  {!collapsed && <span style={{ fontWeight: 600, fontSize: 14 }}>{item.label}</span>}
-                </div>
-              </Link>
+              <div key={item.href} title={!access ? `Upgrade to unlock` : ""}>
+                <Link href={access ? item.href! : `/dashboard?error=upgrade_required`} style={{ textDecoration: "none", pointerEvents: access ? "auto" : "none", opacity: access ? 1 : 0.6 }}>
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: collapsed ? "10px 14px" : "10px 12px",
+                    borderRadius: 10,
+                    marginBottom: 2,
+                    cursor: access ? "pointer" : "not-allowed",
+                    justifyContent: collapsed ? "center" : "space-between",
+                    background: isActive(item.href!) ? "var(--accent-muted)" : "transparent",
+                    border: isActive(item.href!) ? "1px solid var(--border-hover)" : "1px solid transparent",
+                    color: isActive(item.href!) ? "var(--accent)" : "var(--text-secondary)",
+                    transition: "all 0.2s",
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <item.icon size={18} style={{ flexShrink: 0 }} />
+                      {!collapsed && <span style={{ fontWeight: 600, fontSize: 14 }}>{item.label}</span>}
+                    </div>
+                    {!collapsed && !access && <Lock size={14} color="var(--text-muted)" />}
+                  </div>
+                </Link>
+              </div>
             );
           }
 
@@ -251,31 +285,38 @@ export default function Sidebar() {
 
               {!collapsed && groupOpen && (
                 <div style={{ paddingLeft: 14, marginTop: 2 }}>
-                  {item.children.map((child) => (
-                    <Link key={child.href} href={child.href} style={{ textDecoration: "none" }}>
-                      <div style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "8px 12px",
-                        borderRadius: 8,
-                        marginBottom: 2,
-                        cursor: "pointer",
-                        background: isActive(child.href) ? "var(--accent-muted)" : "transparent",
-                        border: isActive(child.href) ? "1px solid var(--border-hover)" : "1px solid transparent",
-                        color: isActive(child.href) ? "var(--accent)" : "var(--text-muted)",
-                        transition: "all 0.15s",
-                        fontSize: 13,
-                        fontWeight: isActive(child.href) ? 600 : 400,
-                      }}
-                        onMouseEnter={e => { if (!isActive(child.href)) { (e.currentTarget as HTMLElement).style.background = "var(--bg-secondary)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}}
-                        onMouseLeave={e => { if (!isActive(child.href)) { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}}
-                      >
-                        <child.icon size={14} style={{ flexShrink: 0 }} />
-                        {child.label}
-                      </div>
-                    </Link>
-                  ))}
+                  {item.children.map((child) => {
+                    const access = hasAccess(child.href);
+                    return (
+                    <div key={child.href} title={!access ? `Upgrade to unlock` : ""}>
+                      <Link href={access ? child.href : `/dashboard?error=upgrade_required`} style={{ textDecoration: "none", pointerEvents: access ? "auto" : "none", opacity: access ? 1 : 0.6 }}>
+                        <div style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "8px 12px",
+                          borderRadius: 8,
+                          marginBottom: 2,
+                          cursor: access ? "pointer" : "not-allowed",
+                          background: isActive(child.href) ? "var(--accent-muted)" : "transparent",
+                          border: isActive(child.href) ? "1px solid var(--border-hover)" : "1px solid transparent",
+                          color: isActive(child.href) ? "var(--accent)" : "var(--text-muted)",
+                          transition: "all 0.15s",
+                          fontSize: 13,
+                          fontWeight: isActive(child.href) ? 600 : 400,
+                        }}
+                          onMouseEnter={e => { if (!isActive(child.href) && access) { (e.currentTarget as HTMLElement).style.background = "var(--bg-secondary)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}}
+                          onMouseLeave={e => { if (!isActive(child.href) && access) { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <child.icon size={14} style={{ flexShrink: 0 }} />
+                            {child.label}
+                          </div>
+                          {!access && <Lock size={12} color="var(--text-muted)" />}
+                        </div>
+                      </Link>
+                    </div>
+                  )})}
                 </div>
               )}
             </div>
@@ -294,13 +335,22 @@ export default function Sidebar() {
         }}>
           <div style={{
             width: 36, height: 36, borderRadius: "50%",
-            background: "linear-gradient(135deg, var(--purple), var(--blue))",
+            background: plan === "Diamond" ? "linear-gradient(135deg, var(--purple), var(--blue))" : plan === "Growth" ? "var(--accent)" : "var(--text-muted)",
             display: "flex", alignItems: "center", justifyContent: "center",
             flexShrink: 0, fontWeight: 700, fontSize: 14, color: "white",
           }}>R</div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Raunit Jha</div>
-            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Diamond Plan</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 2 }}>{plan} Plan</div>
+            <button 
+              onClick={async () => {
+                await fetch("/api/auth/logout", { method: "POST" });
+                window.location.href = "/";
+              }}
+              style={{ fontSize: 10, color: "var(--danger)", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 600 }}
+            >
+              Log Out
+            </button>
           </div>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--success)", flexShrink: 0 }} />
         </div>

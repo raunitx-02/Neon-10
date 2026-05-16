@@ -2,7 +2,7 @@
 import { Bell, Search, HelpCircle } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 
-export default function Topbar({ title }: { title?: string }) {
+export default function Topbar({ title, user = "User", plan = "Starter" }: { title?: string; user?: string; plan?: string }) {
   return (
     <header style={{
       height: 64,
@@ -76,16 +76,17 @@ export default function Topbar({ title }: { title?: string }) {
 
         {/* Plan badge */}
         <div style={{
-          background: "var(--accent-muted)",
-          border: "1px solid var(--border)",
+          background: plan === "Diamond" ? "var(--purple-muted)" : plan === "Growth" ? "var(--accent-muted)" : "var(--bg-secondary)",
+          border: `1px solid ${plan === "Diamond" ? "var(--purple)" : plan === "Growth" ? "var(--accent)" : "var(--border)"}`,
           borderRadius: 10,
           padding: "6px 14px",
           fontSize: 12,
           fontWeight: 700,
-          color: "var(--accent)",
+          color: plan === "Diamond" ? "var(--purple)" : plan === "Growth" ? "var(--accent)" : "var(--text-primary)",
           letterSpacing: "0.05em",
+          textTransform: "uppercase",
         }}>
-          💎 DIAMOND
+          {plan === "Diamond" ? "💎 " : plan === "Growth" ? "⭐ " : ""}{plan}
         </div>
       </div>
     </header>
