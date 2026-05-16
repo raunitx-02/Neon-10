@@ -51,7 +51,7 @@ const PLAN_ACCESS: Record<string, string[]> = {
   ]
 };
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Protect all dashboard, product-research, keywords, listing, tools, analytics, operations routes
