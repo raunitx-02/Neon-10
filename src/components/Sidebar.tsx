@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Search, KeyRound, FileText, Settings, BarChart3,
   Wrench, ChevronRight, ChevronLeft, Bell, Package, TrendingUp,
   ShieldCheck, RefreshCcw, Mail, Boxes, Zap, Cpu, QrCode, Link2,
-  Sparkles, Target, BookOpen, FlaskConical
+  Sparkles, Target, BookOpen, FlaskConical, IndianRupee, Truck
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -73,6 +73,8 @@ const nav = [
     children: [
       { label: "URL Builder", href: "/tools/url-builder", icon: Link2 },
       { label: "QR Generator", href: "/tools/qr-generator", icon: QrCode },
+      { label: "GST & Customs Duty", href: "/tools/gst-calculator", icon: IndianRupee },
+      { label: "Logistics Estimator", href: "/tools/logistics-estimator", icon: Truck },
     ],
   },
 ];
