@@ -4,8 +4,20 @@ import { useState } from "react";
 import {
   Search, Cpu, FileText, TrendingUp, IndianRupee, Truck,
   Star, CheckCircle, ArrowRight, Menu, X, Zap, Globe,
-  BarChart3, ShieldCheck, Sparkles, MessageCircle, Package, MonitorSmartphone, Target, LineChart, BrainCircuit, Box, Boxes
+  BarChart3, ShieldCheck, Sparkles, MessageCircle, Package, MonitorSmartphone, Target, LineChart, BrainCircuit, Box, Boxes,
+  LayoutDashboard, ShoppingCart, Users, Activity
 } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+
+const mockChartData = [
+  { name: "Mon", revenue: 4000 },
+  { name: "Tue", revenue: 5200 },
+  { name: "Wed", revenue: 3800 },
+  { name: "Thu", revenue: 7900 },
+  { name: "Fri", revenue: 8400 },
+  { name: "Sat", revenue: 6200 },
+  { name: "Sun", revenue: 9800 },
+];
 
 const MARQUEE_ITEMS = [
   { text: "Amazon India", icon: <Package size={16} color="var(--accent)" /> },
@@ -105,9 +117,87 @@ export default function LandingPage() {
           width: "100%", background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: 16, padding: 16,
           boxShadow: "0 24px 64px rgba(0,0,0,0.08)", overflow: "hidden"
         }}>
-          {/* Realistic Dashboard Image */}
-          <div style={{ width: "100%", borderRadius: 8, overflow: "hidden", display: "flex" }}>
-            <img src="/dashboard-mockup.png" alt="Neon 10 Dashboard Preview" style={{ width: "100%", height: "auto", objectFit: "cover" }} />
+          {/* Interactive UI Demo */}
+          <div style={{ width: "100%", background: "var(--bg-primary)", borderRadius: 8, border: "1px solid var(--border)", display: "flex", flexDirection: "column", height: 600, overflow: "hidden" }}>
+            {/* Topbar */}
+            <div style={{ height: 60, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", padding: "0 24px", justifyContent: "space-between", background: "var(--bg-secondary)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <div style={{ width: 28, height: 28, background: "var(--accent)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 900, fontSize: 14 }}>N</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>Neon 10 Workspace</div>
+              </div>
+              <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                <div style={{ padding: "6px 12px", background: "var(--bg-primary)", border: "1px solid var(--border)", borderRadius: 20, fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}><Search size={14} /> Search ASINs...</div>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--accent-muted)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)", fontWeight: 700, fontSize: 14 }}>RJ</div>
+              </div>
+            </div>
+            
+            {/* Body */}
+            <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+              {/* Sidebar Mock */}
+              <div style={{ width: 220, borderRight: "1px solid var(--border)", background: "var(--bg-secondary)", padding: "24px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+                {[
+                  { icon: <LayoutDashboard size={16} />, label: "Dashboard", active: true },
+                  { icon: <Search size={16} />, label: "Product Research" },
+                  { icon: <Target size={16} />, label: "Keywords" },
+                  { icon: <BrainCircuit size={16} />, label: "AI Copilot" },
+                  { icon: <LineChart size={16} />, label: "Analytics" },
+                ].map((item, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 8, background: item.active ? "var(--accent-muted)" : "transparent", color: item.active ? "var(--accent)" : "var(--text-secondary)", fontSize: 14, fontWeight: 600 }}>
+                    {item.icon} {item.label}
+                  </div>
+                ))}
+              </div>
+              
+              {/* Content Mock */}
+              <div style={{ flex: 1, padding: 32, overflowY: "auto", background: "var(--bg-primary)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 32 }}>
+                  <div>
+                    <h2 style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)", marginBottom: 4 }}>Sales Overview</h2>
+                    <p style={{ fontSize: 14, color: "var(--text-muted)" }}>Your performance across Amazon IN for the last 7 days.</p>
+                  </div>
+                  <button className="btn-accent" style={{ padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: 700 }}>Export Report</button>
+                </div>
+                
+                {/* Stats Row */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16, marginBottom: 32 }}>
+                  {[
+                    { label: "Total Revenue", value: "₹4,82,500", trend: "+12.4%", icon: <IndianRupee size={20} color="var(--accent)" /> },
+                    { label: "Orders", value: "1,248", trend: "+8.2%", icon: <ShoppingCart size={20} color="var(--blue)" /> },
+                    { label: "Page Views", value: "45,210", trend: "+24.1%", icon: <Activity size={20} color="var(--purple)" /> },
+                    { label: "Conversion", value: "12.8%", trend: "-1.2%", icon: <TrendingUp size={20} color="var(--success)" /> },
+                  ].map((stat, i) => (
+                    <div key={i} style={{ background: "var(--bg-secondary)", padding: 20, borderRadius: 12, border: "1px solid var(--border)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>{stat.icon}</div>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: stat.trend.startsWith("+") ? "var(--success)" : "var(--danger)", background: stat.trend.startsWith("+") ? "var(--success-muted)" : "var(--danger-muted)", padding: "4px 8px", borderRadius: 20 }}>{stat.trend}</span>
+                      </div>
+                      <div style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 600, marginBottom: 4 }}>{stat.label}</div>
+                      <div style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)" }}>{stat.value}</div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Chart Mock */}
+                <div style={{ background: "var(--bg-secondary)", padding: 24, borderRadius: 12, border: "1px solid var(--border)", height: 320 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 20 }}>Revenue Trend</div>
+                  <ResponsiveContainer width="100%" height="85%">
+                    <AreaChart data={mockChartData}>
+                      <defs>
+                        <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="var(--accent)" stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor="var(--accent)" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "var(--text-muted)" }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "var(--text-muted)" }} tickFormatter={v => `₹${v/1000}k`} />
+                      <Tooltip contentStyle={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text-primary)" }} />
+                      <Area type="monotone" dataKey="revenue" stroke="var(--accent)" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
