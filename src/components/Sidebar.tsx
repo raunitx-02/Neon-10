@@ -6,13 +6,13 @@ import {
   LayoutDashboard, Search, KeyRound, FileText, Settings, BarChart3,
   Wrench, ChevronRight, ChevronLeft, Bell, Package, TrendingUp,
   ShieldCheck, RefreshCcw, Mail, Boxes, Zap, Cpu, QrCode, Link2,
-  Sparkles, Target, BookOpen, FlaskConical, IndianRupee, Truck, ScanLine, Lock
+  Sparkles, Target, BookOpen, FlaskConical, IndianRupee, Truck, ScanLine, Lock, UserCircle
 } from "lucide-react";
 import clsx from "clsx";
 
 const PLAN_ACCESS: Record<string, string[]> = {
   Starter: [
-    "/dashboard",
+    "/dashboard", "/profile",
     "/product-research/black-box",
     "/keywords/magnet",
     "/listing/builder",
@@ -22,7 +22,7 @@ const PLAN_ACCESS: Record<string, string[]> = {
     "/tools/qr-generator"
   ],
   Growth: [
-    "/dashboard",
+    "/dashboard", "/profile",
     "/product-research/black-box",
     "/product-research/xray",
     "/keywords/magnet",
@@ -43,6 +43,11 @@ const nav = [
     label: "Dashboard",
     icon: LayoutDashboard,
     href: "/dashboard",
+  },
+  {
+    label: "My Profile",
+    icon: UserCircle,
+    href: "/profile",
   },
   {
     label: "Product Research",
@@ -328,34 +333,45 @@ export default function Sidebar({ plan = "Starter" }: { plan?: string }) {
 
       {/* User profile at bottom */}
       {!collapsed && (
-        <div style={{
-          padding: "16px",
-          borderTop: "1px solid var(--border)",
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-        }}>
+        <Link href="/profile" style={{ textDecoration: "none" }}>
           <div style={{
-            width: 36, height: 36, borderRadius: "50%",
-            background: plan === "Diamond" ? "linear-gradient(135deg, var(--purple), var(--blue))" : plan === "Growth" ? "var(--accent)" : "var(--text-muted)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            flexShrink: 0, fontWeight: 700, fontSize: 14, color: "white",
-          }}>R</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Raunit Jha</div>
-            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 2 }}>{plan} Plan</div>
-            <button 
-              onClick={async () => {
-                await fetch("/api/auth/logout", { method: "POST" });
-                window.location.href = "/";
-              }}
-              style={{ fontSize: 10, color: "var(--danger)", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 600 }}
-            >
-              Log Out
-            </button>
+            padding: "16px",
+            borderTop: "1px solid var(--border)",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            cursor: "pointer",
+            transition: "background 0.2s",
+          }}
+            onMouseEnter={e => (e.currentTarget.style.background = "var(--bg-secondary)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+          >
+            <div style={{
+              width: 36, height: 36, borderRadius: "50%",
+              background: plan === "Diamond" ? "linear-gradient(135deg, var(--purple), var(--blue))" : plan === "Growth" ? "var(--accent)" : "var(--text-muted)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0, fontWeight: 700, fontSize: 14, color: "white",
+              boxShadow: "0 0 0 2px var(--accent-muted)",
+            }}>R</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Raunit Jha</div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{plan} Plan · Manage Profile</div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--success)" }} />
+              <button 
+                onClick={async (e) => {
+                  e.preventDefault();
+                  await fetch("/api/auth/logout", { method: "POST" });
+                  window.location.href = "/";
+                }}
+                style={{ fontSize: 10, color: "var(--danger)", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 600 }}
+              >
+                Log Out
+              </button>
+            </div>
           </div>
-          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--success)", flexShrink: 0 }} />
-        </div>
+        </Link>
       )}
     </aside>
   );
