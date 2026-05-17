@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Package, RefreshCcw, ArrowUpRight, ArrowDownRight } from "lucide-react";
 
@@ -61,10 +62,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export default function DashboardPage({ searchParams }: { searchParams: { error?: string } }) {
+export default function DashboardPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const params = React.use(searchParams);
   return (
     <div>
-      {searchParams.error === "upgrade_required" && (
+      {params.error === "upgrade_required" && (
         <div style={{ background: "var(--warning-muted)", border: "1px solid var(--warning)", borderRadius: 12, padding: "14px 20px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--warning)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <span style={{ fontWeight: 800 }}>!</span>

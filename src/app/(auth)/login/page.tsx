@@ -1,67 +1,217 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { loginWithPlan } from "../actions";
-import { Zap, Star, ShieldCheck } from "lucide-react";
-import { Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { loginAction, sendOtpAction, registerAction } from "../../actions/auth";
+import { ArrowRight, Mail, Lock, KeyRound } from "lucide-react";
+import Link from "next/link";
 
-function LoginForm() {
+function AuthForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const initialMode = searchParams.get("mode");
+
+  const [isLogin, setIsLogin] = useState(initialMode !== "signup");
+  
+  // Form fields
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
+  const [mobile, setMobile] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  
+  const [otpSent, setOtpSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      if (isLogin) {
+        const res = await loginAction(email, password);
+        if (res.error) setError(res.error);
+        else router.push(callbackUrl);
+      } else {
+        if (!otpSent) {
+          if (password !== confirmPassword) {
+            setError("Passwords do not match");
+            setLoading(false);
+            return;
+          }
+          if (!firstName || !lastName || !mobile) {
+            setError("Please fill all required fields");
+            setLoading(false);
+            return;
+          }
+          const res = await sendOtpAction(email);
+          if (res.error) setError(res.error);
+          else {
+            setOtpSent(true);
+            alert(res.message);
+          }
+        } else {
+          // Send all registration info if the backend accepts it in the future, 
+          // for now registerAction just takes email, password, otp.
+          const res = await registerAction(email, password, otp);
+          if (res.error) setError(res.error);
+          else router.push(callbackUrl);
+        }
+      }
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <div style={{ width: "100%", maxWidth: 1000 }}>
-        <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <div style={{ width: 48, height: 48, background: "var(--accent)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", boxShadow: "0 8px 24px var(--accent-glow)" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: "-10%", left: "-10%", width: "50%", height: "50%", background: "radial-gradient(circle, var(--accent-muted) 0%, transparent 70%)", opacity: 0.5, pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: "-10%", right: "-10%", width: "50%", height: "50%", background: "radial-gradient(circle, var(--purple-muted) 0%, transparent 70%)", opacity: 0.5, pointerEvents: "none" }} />
+
+      <div className="glass-card" style={{ width: "100%", maxWidth: isLogin ? 440 : 500, padding: 48, zIndex: 10 }}>
+        <Link href="/" style={{ textDecoration: "none", display: "flex", justifyContent: "center", marginBottom: 32 }}>
+          <div style={{ width: 48, height: 48, background: "var(--accent)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 24px var(--accent-glow)" }}>
             <span style={{ color: "white", fontWeight: 900, fontSize: 24 }}>N</span>
           </div>
-          <h1 style={{ fontSize: 32, fontWeight: 900, marginBottom: 8 }}>Welcome to Neon 10</h1>
-          <p style={{ fontSize: 16, color: "var(--text-muted)" }}>Choose a plan tier to demo the platform</p>
-        </div>
+        </Link>
+        <h1 style={{ fontSize: 28, fontWeight: 900, marginBottom: 8, textAlign: "center" }}>
+          {isLogin ? "Welcome Back" : (otpSent ? "Verify Email" : "Create Account")}
+        </h1>
+        <p style={{ fontSize: 14, color: "var(--text-muted)", textAlign: "center", marginBottom: 32 }}>
+          {isLogin ? "Log in to your Neon 10 workspace" : (otpSent ? "Enter the OTP sent to your email" : "Sign up for the ultimate seller platform")}
+        </p>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20 }}>
-          {/* Starter Plan */}
-          <div className="glass-card" style={{ padding: 32, textAlign: "center" }}>
-            <Zap size={32} color="var(--text-muted)" style={{ margin: "0 auto 16px" }} />
-            <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>Starter</h2>
-            <p style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 24, minHeight: 40 }}>Basic features: Black Box, Magnet, Listing Optimizer, Tools</p>
-            <button 
-              className="btn-ghost" 
-              style={{ width: "100%", padding: 14, fontSize: 16 }}
-              onClick={() => loginWithPlan("Starter", callbackUrl)}
-            >
-              Login as Starter
-            </button>
+        {error && (
+          <div style={{ padding: "12px 16px", background: "var(--warning-muted)", border: "1px solid var(--warning)", borderRadius: 8, color: "var(--warning)", fontSize: 13, fontWeight: 600, marginBottom: 24 }}>
+            {error}
           </div>
+        )}
 
-          {/* Growth Plan */}
-          <div className="glass-card" style={{ padding: 32, textAlign: "center", border: "2px solid var(--accent)", boxShadow: "0 8px 32px var(--accent-glow)" }}>
-            <Star size={32} color="var(--accent)" style={{ margin: "0 auto 16px" }} />
-            <div style={{ background: "var(--accent)", color: "white", fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 50, display: "inline-block", marginBottom: 12 }}>MOST POPULAR</div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>Growth</h2>
-            <p style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 24, minHeight: 40 }}>Includes Starter + Cerebro, Xray, AI Seller Scanner</p>
-            <button 
-              className="btn-accent" 
-              style={{ width: "100%", padding: 14, fontSize: 16 }}
-              onClick={() => loginWithPlan("Growth", callbackUrl)}
-            >
-              Login as Growth
-            </button>
-          </div>
+        <form onSubmit={handleAuth} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {(!isLogin && otpSent) ? (
+            <div style={{ position: "relative" }}>
+              <KeyRound size={18} color="var(--text-muted)" style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)" }} />
+              <input
+                type="text"
+                placeholder="Enter 6-digit OTP"
+                value={otp}
+                onChange={e => setOtp(e.target.value)}
+                required
+                style={{ width: "100%", padding: "14px 16px 14px 44px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 15 }}
+              />
+            </div>
+          ) : (
+            <>
+              {!isLogin && (
+                <>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                    <input
+                      type="text"
+                      placeholder="First Name"
+                      value={firstName}
+                      onChange={e => setFirstName(e.target.value)}
+                      required
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 15 }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Last Name"
+                      value={lastName}
+                      onChange={e => setLastName(e.target.value)}
+                      required
+                      style={{ width: "100%", padding: "14px 16px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 15 }}
+                    />
+                  </div>
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <select
+                      value={countryCode}
+                      onChange={e => setCountryCode(e.target.value)}
+                      style={{ padding: "14px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 15, cursor: "pointer", outline: "none" }}
+                    >
+                      <option value="+91">🇮🇳 +91</option>
+                      <option value="+1">🇺🇸 +1</option>
+                      <option value="+44">🇬🇧 +44</option>
+                      <option value="+971">🇦🇪 +971</option>
+                      <option value="+65">🇸🇬 +65</option>
+                    </select>
+                    <input
+                      type="tel"
+                      placeholder="Mobile Number"
+                      value={mobile}
+                      onChange={e => setMobile(e.target.value)}
+                      required
+                      style={{ flex: 1, padding: "14px 16px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 15 }}
+                    />
+                  </div>
+                </>
+              )}
+              
+              <div style={{ position: "relative" }}>
+                <Mail size={18} color="var(--text-muted)" style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)" }} />
+                <input
+                  type="email"
+                  placeholder="Email Address"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  style={{ width: "100%", padding: "14px 16px 14px 44px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 15 }}
+                />
+              </div>
+              <div style={{ position: "relative" }}>
+                <Lock size={18} color="var(--text-muted)" style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)" }} />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  style={{ width: "100%", padding: "14px 16px 14px 44px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 15 }}
+                />
+              </div>
+              
+              {!isLogin && (
+                <div style={{ position: "relative" }}>
+                  <Lock size={18} color="var(--text-muted)" style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)" }} />
+                  <input
+                    type="password"
+                    placeholder="Confirm Password"
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    required
+                    style={{ width: "100%", padding: "14px 16px 14px 44px", borderRadius: 12, border: "1px solid var(--border)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 15 }}
+                  />
+                </div>
+              )}
+            </>
+          )}
 
-          {/* Diamond Plan */}
-          <div className="glass-card" style={{ padding: 32, textAlign: "center", border: "1px solid var(--purple)" }}>
-            <ShieldCheck size={32} color="var(--purple)" style={{ margin: "0 auto 16px" }} />
-            <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>Diamond</h2>
-            <p style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 24, minHeight: 40 }}>All features unlocked. Full access to everything.</p>
-            <button 
-              style={{ width: "100%", padding: 14, fontSize: 16, background: "var(--purple-muted)", color: "var(--purple)", border: "1px solid var(--purple)", borderRadius: 12, fontWeight: 700, cursor: "pointer" }}
-              onClick={() => loginWithPlan("Diamond", callbackUrl)}
-            >
-              Login as Diamond
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-accent"
+            style={{ width: "100%", padding: 16, borderRadius: 12, fontSize: 16, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 8 }}
+          >
+            {loading ? "Processing..." : (isLogin ? "Log In" : (otpSent ? "Verify & Register" : "Send OTP"))}
+            {!loading && <ArrowRight size={18} />}
+          </button>
+        </form>
+
+        <div style={{ marginTop: 32, textAlign: "center", fontSize: 14, color: "var(--text-muted)" }}>
+          {isLogin ? "Don't have an account? " : "Already have an account? "}
+          <span
+            onClick={() => { setIsLogin(!isLogin); setOtpSent(false); setError(""); }}
+            style={{ color: "var(--accent)", fontWeight: 700, cursor: "pointer" }}
+          >
+            {isLogin ? "Sign Up" : "Log In"}
+          </span>
         </div>
       </div>
     </div>
@@ -70,8 +220,8 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="spinner" style={{ margin: "100px auto" }} />}>
-      <LoginForm />
+    <Suspense fallback={<div style={{ minHeight: "100vh", background: "var(--bg-primary)" }} />}>
+      <AuthForm />
     </Suspense>
   );
 }
