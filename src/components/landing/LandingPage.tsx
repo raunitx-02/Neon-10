@@ -105,53 +105,9 @@ export default function LandingPage() {
           width: "100%", background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: 16, padding: 16,
           boxShadow: "0 24px 64px rgba(0,0,0,0.08)", overflow: "hidden"
         }}>
-          {/* Mock SaaS Dashboard Frame */}
-          <div style={{ width: "100%", background: "var(--bg-primary)", borderRadius: 8, border: "1px solid var(--border)", display: "flex", flexDirection: "column", height: 600, overflow: "hidden" }}>
-            {/* Header */}
-            <div style={{ height: 60, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", padding: "0 24px", justifyContent: "space-between", background: "var(--bg-secondary)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <div style={{ width: 28, height: 28, background: "var(--accent)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 900, fontSize: 14 }}>N</div>
-                <div style={{ width: 200, height: 12, background: "var(--border)", borderRadius: 6 }} />
-              </div>
-              <div style={{ display: "flex", gap: 12 }}>
-                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--border)" }} />
-                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--border)" }} />
-              </div>
-            </div>
-            {/* Body */}
-            <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-              {/* Sidebar */}
-              <div style={{ width: 240, borderRight: "1px solid var(--border)", background: "var(--bg-secondary)", padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
-                {[1, 2, 3, 4, 5, 6].map(i => (
-                  <div key={i} style={{ height: 24, borderRadius: 6, background: i === 1 ? "var(--accent-muted)" : "var(--border)", width: i === 1 ? "100%" : "80%" }} />
-                ))}
-              </div>
-              {/* Content */}
-              <div style={{ flex: 1, padding: 40, overflowY: "auto", background: "var(--bg-primary)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 32 }}>
-                  <div>
-                    <div style={{ height: 32, width: 200, background: "var(--text-primary)", borderRadius: 6, marginBottom: 12, opacity: 0.8 }} />
-                    <div style={{ height: 16, width: 300, background: "var(--border)", borderRadius: 6 }} />
-                  </div>
-                  <div style={{ height: 40, width: 120, background: "var(--accent)", borderRadius: 8 }} />
-                </div>
-                {/* Stats Row */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24, marginBottom: 32 }}>
-                  {[1, 2, 3].map(i => (
-                    <div key={i} style={{ background: "var(--bg-secondary)", padding: 24, borderRadius: 12, border: "1px solid var(--border)" }}>
-                      <div style={{ height: 14, width: 100, background: "var(--border)", borderRadius: 4, marginBottom: 16 }} />
-                      <div style={{ height: 36, width: 140, background: "var(--text-primary)", borderRadius: 6, opacity: 0.9 }} />
-                    </div>
-                  ))}
-                </div>
-                {/* Main Graph Area */}
-                <div style={{ background: "var(--bg-secondary)", padding: 32, borderRadius: 12, border: "1px solid var(--border)", height: 300, display: "flex", alignItems: "flex-end", gap: 12 }}>
-                  {[10, 40, 20, 60, 40, 80, 50, 90, 70, 100, 85, 110].map((h, i) => (
-                    <div key={i} style={{ flex: 1, background: "var(--accent)", height: `${h}%`, borderRadius: "4px 4px 0 0", opacity: 0.8 }} />
-                  ))}
-                </div>
-              </div>
-            </div>
+          {/* Realistic Dashboard Image */}
+          <div style={{ width: "100%", borderRadius: 8, overflow: "hidden", display: "flex" }}>
+            <img src="/dashboard-mockup.png" alt="Neon 10 Dashboard Preview" style={{ width: "100%", height: "auto", objectFit: "cover" }} />
           </div>
         </div>
       </section>
