@@ -32,7 +32,8 @@ const PLAN_ACCESS: Record<string, string[]> = {
     "/tools/logistics-estimator",
     "/tools/url-builder",
     "/tools/qr-generator",
-    "/tools/scanner"
+    "/tools/scanner",
+    "/tools/copilot"
   ],
   Diamond: [] // Diamond has everything
 };
@@ -99,6 +100,7 @@ const nav = [
     icon: Wrench,
     children: [
       { label: "AI Seller Scanner", href: "/tools/scanner", icon: ScanLine },
+      { label: "AI Seller Copilot", href: "/tools/copilot", icon: Sparkles },
       { label: "GST & Customs Duty", href: "/tools/gst-calculator", icon: IndianRupee },
       { label: "Logistics Estimator", href: "/tools/logistics-estimator", icon: Truck },
       { label: "URL Builder", href: "/tools/url-builder", icon: Link2 },
