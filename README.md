@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="./public/hero-banner.png" alt="Neon 10 Hero Banner" width="100%">
-
 # 🌟 Neon 10
 
 **The Next Generation Amazon Seller Intelligence Platform**
