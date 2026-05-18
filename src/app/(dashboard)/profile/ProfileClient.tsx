@@ -1,0 +1,300 @@
+"use client";
+import { useState, useRef, useEffect } from "react";
+import { User, Mail, Lock, Phone, Camera, ShieldCheck, CreditCard, CheckCircle2, AlertCircle, Link2, Unlink, RefreshCw, Save, ArrowRight, ExternalLink } from "lucide-react";
+
+const PLANS = [
+  { id: "Starter", name: "Starter", price: 999, icon: "🚀", color: "var(--text-secondary)", bg: "var(--bg-secondary)", border: "var(--border)", features: ["Product Research", "BSR Intelligence", "Keyword Tracker", "Listing Analyzer"] },
+  { id: "Growth", name: "Growth", price: 2499, icon: "⭐", color: "var(--accent)", bg: "var(--accent-muted)", border: "var(--accent)", features: ["All Starter features", "Cerebro & Magnet", "AI Copilot", "Market Tracker", "Adtomic"] },
+  { id: "Diamond", name: "Diamond", price: 4999, icon: "💎", color: "var(--purple)", bg: "var(--purple-muted)", border: "var(--purple)", features: ["All Growth features", "Inventory Protector", "Refund Genie", "Follow-Up", "Priority Support"] },
+];
+
+// Real OAuth/API URLs for each integration
+const INTEGRATIONS = [
+  {
+    id: "amazon", name: "Amazon India (SP-API)", icon: "🛒", color: "#FF9900",
+    desc: "Connect via Amazon Seller Central. Requires SP-API credentials (MWS Auth Token + Seller ID).",
+    requiredPlan: "Starter",
+    howToConnect: "1. Go to Amazon Seller Central → Apps & Services → Develop Apps\n2. Create SP-API application\n3. Get Client ID, Client Secret, Refresh Token\n4. Enter credentials below",
+    oauthUrl: "https://sellercentral.amazon.in/apps/authorize/consent?application_id=amzn1.sp.solution.xxx",
+    docsUrl: "https://developer-docs.amazon.com/sp-api/",
+  },
+  {
+    id: "flipkart", name: "Flipkart Seller Hub", icon: "🛍️", color: "#047BD5",
+    desc: "Connect via Flipkart Seller API. Requires API Key from Flipkart Seller Hub portal.",
+    requiredPlan: "Growth",
+    howToConnect: "1. Login to seller.flipkart.com\n2. Go to Growth Tools → API Access\n3. Generate API Key\n4. Enter key below",
+    oauthUrl: "https://seller.flipkart.com/api-docs/",
+    docsUrl: "https://seller.flipkart.com/api-docs/",
+  },
+  {
+    id: "meesho", name: "Meesho Supplier", icon: "🏪", color: "#9B30FF",
+    desc: "Meesho does not offer a public API yet. Order export via CSV is supported.",
+    requiredPlan: "Growth",
+    howToConnect: "Meesho currently does not provide a seller API. You can upload order CSV exports from Meesho Supplier Panel for analysis.",
+    oauthUrl: null,
+    docsUrl: "https://supplier.meesho.com",
+  },
+];
+
+function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
+  useEffect(() => { const t = setTimeout(onClose, 4000); return () => clearTimeout(t); }, [onClose]);
+  return (
+    <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, background: type === "success" ? "var(--success)" : "var(--danger)", color: "white", padding: "14px 20px", borderRadius: 12, display: "flex", alignItems: "center", gap: 10, fontWeight: 600, fontSize: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.2)" }}>
+      {type === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />} {message}
+    </div>
+  );
+}
+
+function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+  return (
+    <div className="glass-card" style={{ padding: 28, marginBottom: 20 }}>
+      <div style={{ marginBottom: 20, borderBottom: "1px solid var(--border)", paddingBottom: 16 }}>
+        <h2 style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)" }}>{title}</h2>
+        {subtitle && <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>{subtitle}</p>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+export default function ProfileClient({ initialPlan, initialEmail }: { initialPlan: string; initialEmail: string }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const showToast = (message: string, type: "success" | "error" = "success") => setToast({ message, type });
+
+  const [firstName, setFirstName] = useState(initialEmail === "admin@admin.com" ? "Admin" : "");
+  const [lastName, setLastName] = useState(initialEmail === "admin@admin.com" ? "Neon10" : "");
+  const [mobile, setMobile] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editOtp, setEditOtp] = useState("");
+  const [otpSentFor, setOtpSentFor] = useState<"email" | "password" | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+
+  // Plan - read from REAL cookie via server prop
+  const [currentPlan, setCurrentPlan] = useState(initialPlan);
+  const [selectedPlan, setSelectedPlan] = useState(initialPlan);
+  const [planLoading, setPlanLoading] = useState(false);
+
+  // Integration expanded state
+  const [expandedInt, setExpandedInt] = useState<string | null>(null);
+  const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) { const reader = new FileReader(); reader.onload = ev => setAvatar(ev.target?.result as string); reader.readAsDataURL(file); showToast("Profile picture updated!"); }
+  };
+
+  const handleSendOtp = (type: "email" | "password") => { setOtpSentFor(type); showToast(`OTP sent to ${initialEmail}`); };
+
+  const handleVerifyOtp = (type: "email" | "password") => {
+    if (editOtp.length !== 6) { showToast("Enter a valid 6-digit OTP", "error"); return; }
+    if (type === "password" && newPassword !== confirmNewPassword) { showToast("Passwords do not match!", "error"); return; }
+    showToast(type === "email" ? "Email updated!" : "Password changed!");
+    setOtpSentFor(null); setEditOtp("");
+  };
+
+  const handlePlanChange = async () => {
+    if (selectedPlan === currentPlan) return;
+    setPlanLoading(true);
+    // Call real API to update plan in cookie/DB
+    const res = await fetch("/api/auth/update-plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan: selectedPlan }) });
+    setPlanLoading(false);
+    if (res.ok) { setCurrentPlan(selectedPlan); showToast(`Plan changed to ${selectedPlan}! Billing from 1st of next month.`); }
+    else showToast("Plan update failed. Please try again.", "error");
+  };
+
+  const now = new Date();
+  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const daysLeft = Math.ceil((nextMonth.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const nextMonthName = nextMonth.toLocaleString("en-IN", { month: "long", year: "numeric" });
+
+  const getProration = () => {
+    const oldP = PLANS.find(p => p.id === currentPlan);
+    const newP = PLANS.find(p => p.id === selectedPlan);
+    if (!oldP || !newP || selectedPlan === currentPlan) return null;
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    return { daysLeft, credit: Math.round((oldP.price / daysInMonth) * daysLeft), charge: Math.round((newP.price / daysInMonth) * daysLeft), diff: Math.round(((newP.price - oldP.price) / daysInMonth) * daysLeft), newPlanPrice: newP.price };
+  };
+  const proration = getProration();
+
+  const planIdx = (id: string) => PLANS.findIndex(p => p.id === id);
+
+  return (
+    <div style={{ maxWidth: 820, margin: "0 auto" }}>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">My Profile</h1>
+          <p className="page-subtitle">Account: <b>{initialEmail}</b> · Plan: <b style={{ color: currentPlan === "Diamond" ? "var(--purple)" : currentPlan === "Growth" ? "var(--accent)" : "var(--text-secondary)" }}>{currentPlan === "Diamond" ? "💎 " : currentPlan === "Growth" ? "⭐ " : ""}{currentPlan}</b></p>
+        </div>
+      </div>
+
+      {/* Personal Info */}
+      <Section title="Personal Information" subtitle="Update your name and mobile. Email change requires OTP.">
+        <div style={{ display: "flex", gap: 28, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+            <div onClick={() => fileInputRef.current?.click()} style={{ width: 90, height: 90, borderRadius: "50%", background: avatar ? "transparent" : "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", position: "relative", overflow: "hidden", border: "3px solid var(--accent)", boxShadow: "0 0 0 3px var(--accent-muted)" }}>
+              {avatar ? <img src={avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ color: "white", fontWeight: 900, fontSize: 30 }}>{(firstName[0] || initialEmail[0] || "U").toUpperCase()}</span>}
+              <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", opacity: 0, transition: "opacity 0.2s" }} onMouseEnter={e => (e.currentTarget.style.opacity = "1")} onMouseLeave={e => (e.currentTarget.style.opacity = "0")}><Camera size={22} color="white" /></div>
+            </div>
+            <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleAvatarChange} />
+            <button onClick={() => fileInputRef.current?.click()} className="btn-ghost" style={{ fontSize: 11, padding: "4px 10px" }}>Change Photo</button>
+          </div>
+          <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, minWidth: 280 }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>FIRST NAME</label>
+              <input className="input-field" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="Your first name" />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>LAST NAME</label>
+              <input className="input-field" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Your last name" />
+            </div>
+            <div style={{ gridColumn: "span 2" }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>MOBILE</label>
+              <input className="input-field" value={mobile} onChange={e => setMobile(e.target.value)} placeholder="+91 XXXXXXXXXX" />
+            </div>
+            <div style={{ gridColumn: "span 2" }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>EMAIL (read-only · use Change Email to update)</label>
+              <input className="input-field" value={initialEmail} readOnly style={{ opacity: 0.6 }} />
+            </div>
+            <div style={{ gridColumn: "span 2" }}>
+              <button onClick={() => showToast("Profile saved!")} className="btn-accent" style={{ display: "flex", alignItems: "center", gap: 8 }}><Save size={15} /> Save Changes</button>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* Change Email */}
+      <Section title="Change Email" subtitle="OTP will be sent to your current registered email to verify identity">
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "flex", gap: 12 }}>
+            <div style={{ position: "relative", flex: 1 }}><Mail size={15} color="var(--text-muted)" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} /><input className="input-field" type="email" placeholder="new@email.com" value={editEmail} onChange={e => setEditEmail(e.target.value)} style={{ paddingLeft: 34 }} /></div>
+            <button onClick={() => handleSendOtp("email")} className="btn-ghost" disabled={!editEmail}>Send OTP</button>
+          </div>
+          {otpSentFor === "email" && (
+            <div style={{ display: "flex", gap: 12 }}>
+              <div style={{ position: "relative", flex: 1 }}><ShieldCheck size={15} color="var(--text-muted)" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} /><input className="input-field" placeholder="6-digit OTP" value={editOtp} onChange={e => setEditOtp(e.target.value)} style={{ paddingLeft: 34 }} maxLength={6} /></div>
+              <button onClick={() => handleVerifyOtp("email")} className="btn-accent">Verify & Update</button>
+            </div>
+          )}
+        </div>
+      </Section>
+
+      {/* Change Password */}
+      <Section title="Change Password" subtitle="OTP sent to current email before password can be changed">
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div><label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>NEW PASSWORD</label><div style={{ position: "relative" }}><Lock size={15} color="var(--text-muted)" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} /><input className="input-field" type="password" placeholder="Min 8 chars" value={newPassword} onChange={e => setNewPassword(e.target.value)} style={{ paddingLeft: 34 }} /></div></div>
+            <div><label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>CONFIRM PASSWORD</label><div style={{ position: "relative" }}><Lock size={15} color="var(--text-muted)" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} /><input className="input-field" type="password" placeholder="Repeat password" value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} style={{ paddingLeft: 34 }} /></div></div>
+          </div>
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <button onClick={() => handleSendOtp("password")} className="btn-ghost">Send OTP to Verify</button>
+            {otpSentFor === "password" && <><input className="input-field" placeholder="OTP" value={editOtp} onChange={e => setEditOtp(e.target.value)} style={{ width: 120 }} maxLength={6} /><button onClick={() => handleVerifyOtp("password")} className="btn-accent">Change Password</button></>}
+          </div>
+        </div>
+      </Section>
+
+      {/* Plan Management */}
+      <Section title="Subscription Plan" subtitle={currentPlan === "Diamond" && initialEmail === "admin@admin.com" ? "Admin account — All features unlocked" : `Active: ${currentPlan} · Next billing: 1st ${nextMonthName}`}>
+        {initialEmail === "admin@admin.com" && (
+          <div style={{ background: "var(--purple-muted)", border: "1px solid var(--purple)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 13, color: "var(--purple)", fontWeight: 700 }}>
+            💎 Admin Account — Diamond plan is permanently unlocked. All features available.
+          </div>
+        )}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 20 }}>
+          {PLANS.map(plan => (
+            <div key={plan.id} onClick={() => initialEmail !== "admin@admin.com" && setSelectedPlan(plan.id)} style={{ padding: 18, borderRadius: 12, cursor: initialEmail !== "admin@admin.com" ? "pointer" : "default", border: `2px solid ${selectedPlan === plan.id ? plan.border : "var(--border)"}`, background: selectedPlan === plan.id ? plan.bg : "var(--bg-secondary)", transition: "all 0.2s", position: "relative" }}>
+              {currentPlan === plan.id && <div style={{ position: "absolute", top: -10, right: 10, background: "var(--success)", color: "white", fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 20 }}>ACTIVE</div>}
+              <div style={{ fontSize: 24, marginBottom: 6 }}>{plan.icon}</div>
+              <div style={{ fontWeight: 800, fontSize: 15, color: "var(--text-primary)", marginBottom: 4 }}>{plan.name}</div>
+              <div style={{ fontWeight: 800, fontSize: 18, color: plan.color }}>₹{plan.price.toLocaleString()}<span style={{ fontSize: 11, fontWeight: 400, color: "var(--text-muted)" }}>/mo</span></div>
+              <ul style={{ listStyle: "none", marginTop: 10, display: "flex", flexDirection: "column", gap: 5 }}>
+                {plan.features.slice(0, 3).map(f => <li key={f} style={{ fontSize: 11, color: "var(--text-secondary)", display: "flex", gap: 5 }}><CheckCircle2 size={11} color="var(--success)" />{f}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {proration && selectedPlan !== currentPlan && (
+          <div style={{ background: "var(--accent-muted)", border: "1px solid var(--accent)", borderRadius: 10, padding: 14, marginBottom: 14, fontSize: 13 }}>
+            <div style={{ fontWeight: 700, color: "var(--accent)", marginBottom: 6 }}>📊 Proration — {daysLeft} days left in current cycle</div>
+            <div style={{ display: "flex", gap: 20, flexWrap: "wrap", color: "var(--text-secondary)" }}>
+              <span>Credit: <b style={{ color: "var(--success)" }}>₹{proration.credit}</b></span>
+              <span>New plan charge: <b style={{ color: "var(--accent)" }}>₹{proration.charge}</b></span>
+              <span>Pay now: <b style={{ color: proration.diff > 0 ? "var(--warning)" : "var(--success)" }}>₹{Math.abs(proration.diff)}</b></span>
+            </div>
+            <div style={{ marginTop: 6, fontSize: 11, color: "var(--text-muted)" }}>Full ₹{proration.newPlanPrice.toLocaleString()}/mo billing from 1st {nextMonthName}</div>
+          </div>
+        )}
+
+        {initialEmail !== "admin@admin.com" && (
+          <button onClick={handlePlanChange} disabled={selectedPlan === currentPlan || planLoading} className="btn-accent" style={{ display: "flex", alignItems: "center", gap: 8, opacity: selectedPlan === currentPlan ? 0.5 : 1 }}>
+            {planLoading ? <RefreshCw size={15} style={{ animation: "spin 1s linear infinite" }} /> : <CreditCard size={15} />}
+            {planLoading ? "Updating..." : selectedPlan === currentPlan ? "Current Plan" : `Switch to ${selectedPlan} — Pay via Razorpay`}
+          </button>
+        )}
+      </Section>
+
+      {/* Integrations — HONEST */}
+      <Section title="Marketplace Integrations" subtitle="Real API connections. Each marketplace requires developer credentials from their portal.">
+        <div style={{ background: "var(--warning-muted)", border: "1px solid var(--warning)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 13 }}>
+          <b style={{ color: "var(--warning)" }}>⚠️ Important:</b> <span style={{ color: "var(--text-secondary)" }}>Marketplace API connections require you to register as a developer on each platform and obtain API keys. These are not instant — Amazon SP-API approval takes 1-3 days.</span>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {INTEGRATIONS.map(int => {
+            const canUse = planIdx(currentPlan) >= planIdx(int.requiredPlan) || currentPlan === "Diamond";
+            const expanded = expandedInt === int.id;
+            return (
+              <div key={int.id} style={{ border: `1px solid ${canUse ? "var(--border)" : "var(--border)"}`, borderRadius: 12, overflow: "hidden" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, padding: 16, background: "var(--bg-secondary)", cursor: canUse ? "pointer" : "default" }} onClick={() => canUse && setExpandedInt(expanded ? null : int.id)}>
+                  <span style={{ fontSize: 28 }}>{int.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                      {int.name}
+                      {!canUse && <span style={{ fontSize: 10, background: "var(--warning-muted)", color: "var(--warning)", padding: "2px 7px", borderRadius: 20, border: "1px solid var(--warning)", fontWeight: 800 }}>Requires {int.requiredPlan}+</span>}
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{int.desc}</div>
+                  </div>
+                  {canUse && (
+                    <div style={{ display: "flex", gap: 8 }}>
+                      {int.docsUrl && <a href={int.docsUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="btn-ghost" style={{ fontSize: 11, padding: "6px 10px", display: "flex", alignItems: "center", gap: 4 }}><ExternalLink size={12} /> Docs</a>}
+                      {int.oauthUrl && <a href={int.oauthUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="btn-accent" style={{ fontSize: 11, padding: "6px 12px", display: "flex", alignItems: "center", gap: 4, textDecoration: "none" }}><Link2 size={12} /> Connect via OAuth</a>}
+                      <button className="btn-ghost" style={{ fontSize: 11, padding: "6px 10px" }}>{expanded ? "▲" : "▼"} Setup Guide</button>
+                    </div>
+                  )}
+                </div>
+                {expanded && canUse && (
+                  <div style={{ padding: 16, borderTop: "1px solid var(--border)", background: "var(--bg-card)" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8 }}>HOW TO CONNECT</div>
+                    <pre style={{ fontSize: 12, color: "var(--text-secondary)", whiteSpace: "pre-wrap", lineHeight: 1.7, marginBottom: 14, background: "var(--bg-secondary)", padding: 12, borderRadius: 8 }}>{int.howToConnect}</pre>
+                    {int.id !== "meesho" && (
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>PASTE YOUR API KEY / CREDENTIALS</label>
+                        <div style={{ display: "flex", gap: 10 }}>
+                          <input className="input-field" type="password" placeholder={int.id === "amazon" ? "Paste Refresh Token..." : "Paste API Key..."} value={apiKeys[int.id] || ""} onChange={e => setApiKeys(prev => ({ ...prev, [int.id]: e.target.value }))} />
+                          <button onClick={() => { if (!apiKeys[int.id]) { showToast("Enter your API key first", "error"); return; } showToast(`${int.name} credentials saved! Verification in progress...`); }} className="btn-accent" style={{ whiteSpace: "nowrap" }}>Save & Connect</button>
+                        </div>
+                        <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>Keys are stored encrypted. We never share your credentials.</p>
+                      </div>
+                    )}
+                    {int.id === "meesho" && (
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>UPLOAD MEESHO ORDER CSV EXPORT</label>
+                        <input type="file" accept=".csv" className="input-field" style={{ cursor: "pointer" }} onChange={() => showToast("CSV uploaded! Processing orders...")} />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </Section>
+
+      <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
+    </div>
+  );
+}

@@ -77,6 +77,17 @@ export default function DashboardPage({ searchParams }: { searchParams: Promise<
           </div>
         </div>
       )}
+      {/* DEMO DATA BANNER — shown until account connected */}
+      <div style={{ background: "var(--blue-muted)", border: "1px solid var(--blue)", borderRadius: 12, padding: "14px 20px", marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ fontSize: 22 }}>📊</span>
+          <div>
+            <div style={{ fontWeight: 700, color: "var(--blue)", fontSize: 14 }}>Showing Sample / Demo Data</div>
+            <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Connect your Amazon, Flipkart or Meesho seller account in Profile → Integrations to see your real sales data.</div>
+          </div>
+        </div>
+        <a href="/profile" style={{ textDecoration: "none" }}><button className="btn-accent" style={{ fontSize: 13, whiteSpace: "nowrap" }}>Connect Account →</button></a>
+      </div>
       <div className="page-header">
         <div>
           <h1 className="page-title">Profits Dashboard</h1>
