@@ -20,7 +20,7 @@ async function sendOtpEmail(email: string, otp: string, subject: string, heading
   }
 
   const { error } = await resend.emails.send({
-    from: "Neon 10 <noreply@neon10.in>",
+    from: "Neon 10 <onboarding@resend.dev>",
     to: email,
     subject,
     html: `
