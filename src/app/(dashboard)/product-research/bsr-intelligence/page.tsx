@@ -27,7 +27,7 @@ const trendingProducts = [
     bsr: 12,
     change: +45,
     category: "Electronics",
-    price: "$49.99",
+    price: "₹4,199",
     img: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=200&h=200&fit=crop"
   },
   {
@@ -36,7 +36,7 @@ const trendingProducts = [
     bsr: 45,
     change: +120,
     category: "Home Office",
-    price: "$29.99",
+    price: "₹2,499",
     img: "https://images.unsplash.com/photo-1534073828943-f801091bb18c?w=200&h=200&fit=crop"
   },
   {
@@ -45,7 +45,7 @@ const trendingProducts = [
     bsr: 89,
     change: +210,
     category: "Sports",
-    price: "$34.50",
+    price: "₹2,899",
     img: "https://images.unsplash.com/photo-1523362622602-4c740deda5f2?w=200&h=200&fit=crop"
   },
   {
@@ -54,7 +54,7 @@ const trendingProducts = [
     bsr: 5,
     change: +8,
     category: "Electronics",
-    price: "$299.00",
+    price: "₹24,999",
     img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop"
   }
 ];

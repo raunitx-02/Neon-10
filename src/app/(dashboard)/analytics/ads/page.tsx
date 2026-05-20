@@ -38,9 +38,9 @@ const DEFAULT_CAMPAIGNS: Campaign[] = [
 ];
 
 const DEFAULT_SUGGESTIONS: Suggestion[] = [
-  { id: 1, campaign: "Bamboo Board - Auto", action: "Increase bid", keyword: "bamboo cutting board", current: "$0.82", suggested: "$1.04", reason: "Conversion rate +34% above average", applied: false },
-  { id: 2, campaign: "Water Bottle - Broad", action: "Decrease bid", keyword: "cheap water bottle", current: "$0.65", suggested: "$0.38", reason: "ACoS is 58% — not profitable", applied: false },
-  { id: 3, campaign: "Yoga Mat - Sponsored Brand", action: "Pause keyword", keyword: "fitness mat generic", current: "$0.44", suggested: "$0", reason: "0 conversions in 120 clicks", applied: false },
+  { id: 1, campaign: "Bamboo Board - Auto", action: "Increase bid", keyword: "bamboo cutting board", current: "₹68", suggested: "₹86", reason: "Conversion rate +34% above average", applied: false },
+  { id: 2, campaign: "Water Bottle - Broad", action: "Decrease bid", keyword: "cheap water bottle", current: "₹54", suggested: "₹32", reason: "ACoS is 58% — not profitable", applied: false },
+  { id: 3, campaign: "Yoga Mat - Sponsored Brand", action: "Pause keyword", keyword: "fitness mat generic", current: "₹37", suggested: "₹0", reason: "0 conversions in 120 clicks", applied: false },
 ];
 
 const chartData = [
@@ -232,8 +232,8 @@ export default function AdsPage() {
       {/* OVERVIEW STATS */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 24 }}>
         {[
-          { label: "Total Ad Spend", value: `$${totalSpend.toLocaleString()}`, color: "var(--danger)" },
-          { label: "Total Ad Revenue", value: `$${totalRevenue.toLocaleString()}`, color: "var(--success)" },
+          { label: "Total Ad Spend", value: `₹${totalSpend.toLocaleString("en-IN")}`, color: "var(--danger)" },
+          { label: "Total Ad Revenue", value: `₹${totalRevenue.toLocaleString("en-IN")}`, color: "var(--success)" },
           { label: "Avg ACoS", value: `${avgAcos}%`, color: parseFloat(avgAcos) < 20 ? "var(--success)" : "var(--warning)" },
           { label: "Active Campaigns", value: `${activeCamsCount} / ${campaigns.length}`, color: "var(--blue)" },
         ].map(s => (
@@ -252,8 +252,8 @@ export default function AdsPage() {
           <BarChart data={chartData} barGap={4} barCategoryGap="30%">
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
             <XAxis dataKey="day" tick={{ fill: "var(--text-muted)", fontSize: 11 }} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fill: "var(--text-muted)", fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={v => `$${(v / 1000).toFixed(1)}k`} />
-            <Tooltip contentStyle={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 10 }} formatter={(v: any) => [`$${v.toLocaleString()}`, ""]} />
+            <YAxis tick={{ fill: "var(--text-muted)", fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={v => `₹${(v / 1000).toFixed(1)}k`} />
+            <Tooltip contentStyle={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 10 }} formatter={(v: any) => [`₹${Number(v).toLocaleString("en-IN")}`, ""]} />
             <Legend wrapperStyle={{ color: "var(--text-secondary)", fontSize: 13 }} />
             <Bar dataKey="spend" fill="var(--danger)" radius={[4, 4, 0, 0]} name="Ad Spend" opacity={0.8} />
             <Bar dataKey="revenue" fill="var(--success)" radius={[4, 4, 0, 0]} name="Ad Revenue" opacity={0.8} />
@@ -291,8 +291,8 @@ export default function AdsPage() {
                   <tr key={c.name + i}>
                     <td style={{ fontWeight: 500, color: "var(--text-primary)", fontSize: 13 }}>{c.name}</td>
                     <td><span className={`badge ${typeBadge[c.type] || "badge-blue"}`} style={{ fontSize: 11 }}>{c.type}</span></td>
-                    <td style={{ color: "var(--danger)", fontWeight: 600 }}>${c.spend.toLocaleString()}</td>
-                    <td style={{ color: "var(--success)", fontWeight: 700 }}>${c.revenue.toLocaleString()}</td>
+                    <td style={{ color: "var(--danger)", fontWeight: 600 }}>₹{c.spend.toLocaleString("en-IN")}</td>
+                    <td style={{ color: "var(--success)", fontWeight: 700 }}>₹{c.revenue.toLocaleString("en-IN")}</td>
                     <td>
                       <span style={{ fontWeight: 700, color: c.acos === 0 ? "var(--text-muted)" : c.acos < 20 ? "var(--success)" : c.acos < 30 ? "var(--warning)" : "var(--danger)" }}>
                         {c.acos > 0 ? `${c.acos}%` : "—"}
@@ -448,7 +448,7 @@ export default function AdsPage() {
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>Daily Budget ($)</label>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>Daily Budget (₹)</label>
                   <input 
                     type="number" 
                     className="input-field" 
