@@ -286,7 +286,7 @@ export default function ScannerPage() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && runScan()}
             disabled={loading}
-            style={{ flex: 1, fontSize: 14, background: "rgba(0, 0, 0, 0.2)" }}
+            style={{ flex: 1, fontSize: 14 }}
           />
           {input && (
             <button className="btn-ghost" style={{ padding: "10px 14px", border: "1px solid var(--border)" }} onClick={() => { setInput(""); setData(null); }} disabled={loading}>
@@ -317,7 +317,7 @@ export default function ScannerPage() {
 
       {/* Error Message */}
       {error && (
-        <div style={{ background: "rgba(255, 75, 75, 0.1)", border: "1px solid var(--danger)", borderRadius: 12, padding: "14px 20px", marginBottom: 24, color: "var(--danger)", display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ background: "var(--danger-muted)", border: "1px solid var(--danger)", borderRadius: 12, padding: "14px 20px", marginBottom: 24, color: "var(--danger)", display: "flex", alignItems: "center", gap: 10 }}>
           <AlertTriangle size={18} />
           <div>
             <div style={{ fontWeight: 700 }}>Scan Audit Failed</div>
@@ -335,7 +335,7 @@ export default function ScannerPage() {
             Neon 10 is pulling real-time performance indicators directly from Keepa APIs for the Amazon India market.
           </p>
           
-          <div style={{ maxWidth: 480, margin: "0 auto", textAlign: "left", background: "rgba(0,0,0,0.15)", borderRadius: 12, padding: "16px 24px", border: "1px solid var(--border)" }}>
+          <div style={{ maxWidth: 480, margin: "0 auto", textAlign: "left", background: "var(--bg-primary)", borderRadius: 12, padding: "16px 24px", border: "1px solid var(--border)" }}>
             {[
               { step: 0, text: "Establishing secure Keepa API tunnel..." },
               { step: 1, text: "Parsing seller storefront inventory catalog..." },
@@ -378,7 +378,7 @@ export default function ScannerPage() {
               { label: "Average Rating", value: data.avgRating > 0 ? `${data.avgRating} ★` : "N/A", icon: <Star size={18} color="var(--warning)" />, border: "var(--warning)" },
               { label: "Total Reviews Tracked", value: data.totalReviews.toLocaleString("en-IN"), icon: <Activity size={18} color="var(--blue)" />, border: "var(--blue)" }
             ].map((c) => (
-              <div key={c.label} className="stat-card" style={{ padding: 20, borderLeft: `4px solid ${c.border}`, background: "rgba(0,0,0,0.1)" }}>
+              <div key={c.label} className="stat-card" style={{ padding: 20, borderLeft: `4px solid ${c.border}` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>{c.label}</span>
                   {c.icon}
@@ -436,7 +436,7 @@ export default function ScannerPage() {
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {data.competitorGaps.map((gap, i) => (
-                  <div key={i} style={{ display: "flex", gap: 10, padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: 8, border: "1px solid var(--border)", fontSize: 12, alignItems: "center" }}>
+                  <div key={i} style={{ display: "flex", gap: 10, padding: "10px 14px", background: "var(--bg-primary)", borderRadius: 8, border: "1px solid var(--border)", fontSize: 12, alignItems: "center" }}>
                     <ArrowRight size={14} color="var(--purple)" style={{ flexShrink: 0 }} />
                     <span style={{ color: "var(--text-secondary)", fontWeight: 500 }}>{gap}</span>
                   </div>
@@ -512,7 +512,7 @@ export default function ScannerPage() {
                               style={{
                                 borderBottom: "1px solid var(--border)",
                                 cursor: "pointer",
-                                background: isExpanded ? "rgba(255,255,255,0.02)" : "transparent",
+                                background: isExpanded ? "var(--bg-primary)" : "transparent",
                                 transition: "all 0.15s ease",
                                 fontSize: 13
                               }}
@@ -579,11 +579,11 @@ export default function ScannerPage() {
 
                             {/* Expandable summary row */}
                             {isExpanded && (
-                              <tr style={{ background: "rgba(255,255,255,0.015)" }}>
+                              <tr style={{ background: "var(--bg-primary)" }}>
                                 <td colSpan={8} style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
                                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
                                     {/* Quick P&L */}
-                                    <div style={{ background: "rgba(0,0,0,0.15)", padding: 14, borderRadius: 8, border: "1px solid var(--border)" }}>
+                                    <div style={{ background: "var(--bg-secondary)", padding: 14, borderRadius: 8, border: "1px solid var(--border)" }}>
                                       <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase" }}>Quick unit economics</div>
                                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, margin: "4px 0" }}>
                                         <span>Retail Price:</span>
@@ -647,7 +647,7 @@ export default function ScannerPage() {
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
                   {data.listings.map((l) => (
-                    <div key={l.asin} className="glass-card" style={{ padding: 20, background: "rgba(0,0,0,0.12)", border: "1px solid var(--border)" }}>
+                    <div key={l.asin} className="glass-card" style={{ padding: 20, border: "1px solid var(--border)" }}>
                       {/* Product Header */}
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 16, borderBottom: "1px solid var(--border)", paddingBottom: 12 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -666,7 +666,7 @@ export default function ScannerPage() {
                       {/* Checklist Cards */}
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginBottom: 16 }}>
                         {/* Title Audit */}
-                        <div style={{ background: "rgba(0,0,0,0.15)", padding: 12, borderRadius: 8, border: "1px solid var(--border)" }}>
+                        <div style={{ background: "var(--bg-primary)", padding: 12, borderRadius: 8, border: "1px solid var(--border)" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                             <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>TITLE AUDIT</span>
                             <GradeBadge grade={l.seo.checklist.titleGrade} />
@@ -682,7 +682,7 @@ export default function ScannerPage() {
                         </div>
 
                         {/* Bullets Audit */}
-                        <div style={{ background: "rgba(0,0,0,0.15)", padding: 12, borderRadius: 8, border: "1px solid var(--border)" }}>
+                        <div style={{ background: "var(--bg-primary)", padding: 12, borderRadius: 8, border: "1px solid var(--border)" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                             <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>BULLET POINTS</span>
                             <GradeBadge grade={l.seo.checklist.bulletGrade} />
@@ -696,7 +696,7 @@ export default function ScannerPage() {
                         </div>
 
                         {/* Image Gallery */}
-                        <div style={{ background: "rgba(0,0,0,0.15)", padding: 12, borderRadius: 8, border: "1px solid var(--border)" }}>
+                        <div style={{ background: "var(--bg-primary)", padding: 12, borderRadius: 8, border: "1px solid var(--border)" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                             <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>IMAGE GALLERY</span>
                             <GradeBadge grade={l.seo.checklist.imageGrade} />
@@ -710,7 +710,7 @@ export default function ScannerPage() {
                         </div>
 
                         {/* Description Audit */}
-                        <div style={{ background: "rgba(0,0,0,0.15)", padding: 12, borderRadius: 8, border: "1px solid var(--border)" }}>
+                        <div style={{ background: "var(--bg-primary)", padding: 12, borderRadius: 8, border: "1px solid var(--border)" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                             <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>DESCRIPTION & A+</span>
                             <GradeBadge grade={l.seo.checklist.descriptionGrade} />
@@ -726,7 +726,7 @@ export default function ScannerPage() {
 
                       {/* Issues & Strengths list */}
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                        <div style={{ background: "rgba(255, 75, 75, 0.03)", padding: 12, borderRadius: 6, border: "1px solid rgba(255, 75, 75, 0.1)" }}>
+                        <div style={{ background: "var(--danger-muted)", padding: 12, borderRadius: 6, border: "1px solid rgba(255, 75, 75, 0.1)" }}>
                           <div style={{ fontSize: 11, fontWeight: 700, color: "var(--danger)", marginBottom: 6 }}>🚨 DETECTED SEO ISSUES ({l.seo.issues.length})</div>
                           {l.seo.issues.length === 0 ? (
                             <div style={{ fontSize: 12, color: "var(--success)" }}>✓ Listing complies perfectly with Amazon SEO rules.</div>
@@ -739,7 +739,7 @@ export default function ScannerPage() {
                             ))
                           )}
                         </div>
-                        <div style={{ background: "rgba(52, 199, 89, 0.03)", padding: 12, borderRadius: 6, border: "1px solid rgba(52, 199, 89, 0.1)" }}>
+                        <div style={{ background: "var(--success-muted)", padding: 12, borderRadius: 6, border: "1px solid rgba(52, 199, 89, 0.1)" }}>
                           <div style={{ fontSize: 11, fontWeight: 700, color: "var(--success)", marginBottom: 6 }}>🏆 LISTING WINS ({l.seo.wins.length})</div>
                           {l.seo.wins.map((w, i) => (
                             <div key={i} style={{ display: "flex", gap: 6, fontSize: 12, marginBottom: 4, alignItems: "flex-start" }}>
@@ -765,7 +765,7 @@ export default function ScannerPage() {
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
                   {data.listings.map((l) => (
-                    <div key={l.asin} className="glass-card" style={{ padding: 20, background: "rgba(0,0,0,0.12)", border: "1px solid var(--border)" }}>
+                    <div key={l.asin} className="glass-card" style={{ padding: 20, border: "1px solid var(--border)" }}>
                       <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16, borderBottom: "1px solid var(--border)", paddingBottom: 10 }}>
                         <img src={l.img} alt={l.asin} style={{ width: 36, height: 36, objectFit: "contain", background: "#fff", padding: 2, borderRadius: 4 }} />
                         <div>
@@ -792,14 +792,14 @@ export default function ScannerPage() {
                           <div style={{ flex: 35, background: "var(--purple)", height: "100%" }} title={`COGS (35%): ${l.formattedCogs}`} />
                           <div style={{ flex: Math.round((l.fbaFee / l.price) * 100) || 5, background: "var(--accent)", height: "100%" }} title={`FBA Fee: ${l.formattedFbaFee}`} />
                           <div style={{ flex: l.referralFeePercent, background: "var(--blue)", height: "100%" }} title={`Referral Fee (${l.referralFeePercent}%): ${l.formattedReferralFee}`} />
-                          <div style={{ flex: l.gstPercent, background: "rgba(255,255,255,0.15)", height: "100%" }} title={`GST Tax (${l.gstPercent}%): ${l.formattedGst}`} />
+                          <div style={{ flex: l.gstPercent, background: "var(--text-muted)", height: "100%" }} title={`GST Tax (${l.gstPercent}%): ${l.formattedGst}`} />
                           <div style={{ flex: l.netMargin || 5, background: "var(--success)", height: "100%" }} title={`Net Margin (${l.netMargin}%): ${l.formattedNetProfit}`} />
                         </div>
                         <div style={{ display: "flex", gap: 16, marginTop: 8, fontSize: 10, color: "var(--text-muted)", justifyContent: "center", flexWrap: "wrap" }}>
                           <span style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 8, height: 8, background: "var(--purple)", borderRadius: "50%" }} /> COGS (35%)</span>
                           <span style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 8, height: 8, background: "var(--accent)", borderRadius: "50%" }} /> FBA Fees</span>
                           <span style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 8, height: 8, background: "var(--blue)", borderRadius: "50%" }} /> Amazon Comm.</span>
-                          <span style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 8, height: 8, background: "rgba(255,255,255,0.2)", borderRadius: "50%" }} /> GST Tax (18%)</span>
+                          <span style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 8, height: 8, background: "var(--text-secondary)", borderRadius: "50%" }} /> GST Tax (18%)</span>
                           <span style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 8, height: 8, background: "var(--success)", borderRadius: "50%" }} /> Net Profit Margin</span>
                         </div>
                       </div>
@@ -837,7 +837,7 @@ export default function ScannerPage() {
                       </div>
 
                       {/* Cumulative margins */}
-                      <div style={{ marginTop: 14, background: "rgba(255,255,255,0.02)", borderRadius: 8, padding: "10px 14px", border: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div style={{ marginTop: 14, background: "var(--bg-primary)", borderRadius: 8, padding: "10px 14px", border: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
                           Est. sales contribution based on <strong>{l.monthlySold.toLocaleString("en-IN")} sales/mo</strong>
                         </div>
@@ -866,7 +866,7 @@ export default function ScannerPage() {
                   {data.listings.map((l) => {
                     const badge = getBuyBoxBadge(l.buyBoxOwner);
                     return (
-                      <div key={l.asin} className="glass-card" style={{ padding: 20, background: "rgba(0,0,0,0.12)", border: "1px solid var(--border)" }}>
+                      <div key={l.asin} className="glass-card" style={{ padding: 20, border: "1px solid var(--border)" }}>
                         <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16, borderBottom: "1px solid var(--border)", paddingBottom: 10 }}>
                           <img src={l.img} alt={l.asin} style={{ width: 36, height: 36, objectFit: "contain", background: "#fff", padding: 2, borderRadius: 4 }} />
                           <div>
@@ -877,7 +877,7 @@ export default function ScannerPage() {
 
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                           {/* Left card: Buy Box State */}
-                          <div style={{ background: "rgba(0,0,0,0.15)", padding: 16, borderRadius: 8, border: "1px solid var(--border)" }}>
+                          <div style={{ background: "var(--bg-primary)", padding: 16, borderRadius: 8, border: "1px solid var(--border)" }}>
                             <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 10, textTransform: "uppercase" }}>BUY BOX OWNERSHIP</div>
                             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                               <span style={{
@@ -901,7 +901,7 @@ export default function ScannerPage() {
                           </div>
 
                           {/* Right card: Price Averages and Trends */}
-                          <div style={{ background: "rgba(0,0,0,0.15)", padding: 16, borderRadius: 8, border: "1px solid var(--border)" }}>
+                          <div style={{ background: "var(--bg-primary)", padding: 16, borderRadius: 8, border: "1px solid var(--border)" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                               <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>PRICE HISTORY DIAGNOSTIC</span>
                               <span style={{
@@ -959,10 +959,10 @@ export default function ScannerPage() {
                   {data.growthPredictions.map((gp, idx) => {
                     const l = data.listings.find((item) => item.asin === gp.asin);
                     return (
-                      <div key={gp.asin} className="glass-card" style={{ padding: 20, background: "rgba(0,0,0,0.12)", border: "1px solid var(--border)", position: "relative" }}>
+                      <div key={gp.asin} className="glass-card" style={{ padding: 20, border: "1px solid var(--border)", position: "relative" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 12 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <div style={{ background: "rgba(255,255,255,0.05)", width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "var(--accent)" }}>
+                            <div style={{ background: "var(--accent-muted)", width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "var(--accent)" }}>
                               {idx + 1}
                             </div>
                             <div>
@@ -1036,8 +1036,8 @@ export default function ScannerPage() {
             { icon: <TrendingUp size={24} color="var(--warning)" />, title: "Price War & Buy Box Tracker", desc: "Identifies whether Amazon retail competes in the Buy Box and evaluates 30d/90d averages to alert on active price wars." },
             { icon: <Sparkles size={24} color="var(--purple)" />, title: "AI-Prioritized Roadmaps", desc: "Delivers specific keyword improvements, PPC budget scale actions, and dynamic repricer guidelines with ROI forecasts." }
           ].map((c, i) => (
-            <div key={i} className="stat-card" style={{ padding: 24, textAlign: "center", border: "1px solid var(--border)", background: "rgba(0,0,0,0.1)" }}>
-              <div style={{ display: "inline-flex", padding: 12, background: "rgba(255,255,255,0.03)", borderRadius: "50%", marginBottom: 16, border: "1px solid var(--border)" }}>
+            <div key={i} className="stat-card" style={{ padding: 24, textAlign: "center", border: "1px solid var(--border)" }}>
+              <div style={{ display: "inline-flex", padding: 12, background: "var(--bg-primary)", borderRadius: "50%", marginBottom: 16, border: "1px solid var(--border)" }}>
                 {c.icon}
               </div>
               <h3 style={{ fontWeight: 800, fontSize: 15, marginBottom: 8, color: "var(--text-primary)" }}>{c.title}</h3>
