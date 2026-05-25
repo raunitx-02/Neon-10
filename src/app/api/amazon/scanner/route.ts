@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   fetchKeepaProducts,
   searchKeepaProducts,
+  keepaFetch,
   getBestPrice,
   formatINR,
   getKeepaRating,
@@ -362,26 +363,42 @@ export async function POST(req: NextRequest) {
 
     const { sellerId, asins, searchTerm } = extractSellerInfo(input);
     let products: any[] = [];
+    let brandName = searchTerm || "Brand Storefront";
 
     if (asins && asins.length > 0) {
       products = await fetchKeepaProducts(asins);
-    } else {
-      let term = searchTerm || sellerId || input;
-      products = await searchKeepaProducts(term);
-
-      if (products.length === 0 && sellerId) {
-        const brandMatch = input.match(/\/stores\/([^/]+)\//i);
-        term = brandMatch ? brandMatch[1].replace(/-/g, " ") : "boAt Lifestyle";
-        products = await searchKeepaProducts(term);
+      brandName = "ASIN Audit List";
+    } else if (sellerId) {
+      try {
+        const sellerData = await keepaFetch("seller", { seller: sellerId });
+        if (sellerData && sellerData.asinList && sellerData.asinList.length > 0) {
+          const sellerAsins = sellerData.asinList.slice(0, 10);
+          products = await fetchKeepaProducts(sellerAsins);
+          if (sellerData.sellerName) {
+            brandName = sellerData.sellerName;
+          }
+        }
+      } catch (err) {
+        console.error("Keepa seller endpoint failed:", err);
       }
 
-      // Limit products to remain well within Keepa search rate limits
-      products = products.slice(0, 10);
+      if (products.length === 0) {
+        const brandMatch = input.match(/\/stores\/([^/]+)\//i);
+        if (brandMatch) {
+          const term = brandMatch[1].replace(/-/g, " ");
+          products = await searchKeepaProducts(term);
+          brandName = term;
+        }
+      }
+    } else if (searchTerm) {
+      products = await searchKeepaProducts(searchTerm);
+      brandName = searchTerm;
     }
 
     if (products.length === 0) {
+      const displaySubject = sellerId ? `Seller ID: ${sellerId}` : searchTerm || input;
       return NextResponse.json(
-        { error: "No products found for this brand or storefront. Try a different brand name or paste an ASIN directly." },
+        { error: `No active products found for "${displaySubject}". The seller may have no public active listings in the Amazon.in marketplace.` },
         { status: 404 }
       );
     }
@@ -494,10 +511,10 @@ export async function POST(req: NextRequest) {
       (avgRating >= 4.0 ? 20 : avgRating >= 3.5 ? 10 : 0)
     );
 
-    const brandName = listingAnalyses[0]?.brand || searchTerm || "Brand Storefront";
+    const finalBrandName = brandName || listingAnalyses[0]?.brand || "Storefront Catalog";
 
     return NextResponse.json({
-      brandName,
+      brandName: finalBrandName,
       overallScore,
       productsScanned: products.length,
       searchTerm: searchTerm || sellerId || input,
