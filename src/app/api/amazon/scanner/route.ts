@@ -330,25 +330,65 @@ function buildAccountHealth(products: any[], statsList: ExtractedStats[]): { sco
 }
 
 // ─── Growth Predictions ───────────────────────────────────────────────────────
-function buildGrowthPredictions(products: any[], statsList: ExtractedStats[]): { asin: string; title: string; prediction: string; action: string; potential: string }[] {
+function buildGrowthPredictions(products: any[], statsList: ExtractedStats[]): { asin: string; title: string; prediction: string; action: string; potential: string; checklist: string[] }[] {
   return products.slice(0, 5).map((p, idx) => {
     const stats = statsList[idx];
     const price = getBestPrice(p.stats?.current || []) || 0;
     const title = (p.title || "").slice(0, 60);
 
-    if (stats.bsr > 0 && stats.bsr < 5000 && stats.reviews > 100) {
-      return { asin: p.asin, title, prediction: "Scale with PPC ads", action: "Launch Sponsored Products — already has traction", potential: "+40-60% revenue in 30 days" };
+    const checklist: string[] = [];
+    let prediction = "Stable — optimize margin";
+    let action = "Audit FBA fees + GST slabs for margin expansion";
+    let potential = "+10-15% margin improvements";
+
+    // 1. Image checks
+    if (stats.imgCount < 5) {
+      checklist.push(`Upload at least ${6 - stats.imgCount} more high-resolution infographic & lifestyle images`);
+    } else {
+      checklist.push("Maintain current excellent image gallery standards");
     }
-    if (stats.rating > 0 && stats.rating < 4.0) {
-      return { asin: p.asin, title, prediction: "Needs quality/listing fix", action: "Analyze reviews, improve description + images", potential: "+18-25% conversion after fix" };
-    }
+
+    // 2. Review and Rating checks
     if (stats.reviews < 50) {
-      return { asin: p.asin, title, prediction: "Review acceleration needed", action: "Launch vine program + early reviewer strategy", potential: "3× conversion once 50+ reviews reached" };
+      checklist.push("Enroll ASIN in the Amazon Vine Program to acquire verified early reviews");
+    } else if (stats.rating < 4.0) {
+      checklist.push("Perform negative review sentiment analysis to address product quality defects");
+    } else {
+      checklist.push("Launch review acceleration follow-ups for recent orders");
     }
-    if (stats.bsr > 50000) {
-      return { asin: p.asin, title, prediction: "Low visibility — SEO needed", action: "Rebuild title + backend keywords using Frankenstein", potential: "+35% organic ranking improvement" };
+
+    // 3. SEO & Visibility
+    if (stats.bsr > 30000 || stats.bsr === 0) {
+      prediction = "Low visibility — SEO needed";
+      action = "Rebuild product title keywords and backend search terms using Frankenstein";
+      potential = "+35% organic ranking improvement";
+      checklist.push("Inject high-volume competitor search term backend keywords");
+    } else if (stats.bsr < 5000 && stats.reviews > 100) {
+      prediction = "Scale with PPC ads";
+      action = "Launch Sponsored Products PPC campaigns targeting top search queries";
+      potential = "+40-60% revenue in 30 days";
+      checklist.push("Aggressively target top 5 competitor listing keyword targets");
     }
-    return { asin: p.asin, title, prediction: "Stable — optimize margin", action: "Audit FBA fees + GST slabs for margin expansion", potential: `Current est. revenue: ${formatINR(estimateMonthlySales(stats.bsr, "") * price)}/mo` };
+
+    // 4. Margins & Pricing
+    if (stats.priceStability === "Price War Alert") {
+      checklist.push("Review minimum repricer floor thresholds to prevent further price drop");
+    } else {
+      checklist.push("Optimize PPC ad bids to align with the target contribution margin");
+    }
+
+    if (stats.buyBoxOwner === "Amazon") {
+      checklist.push("Create bundled multipacks to avoid direct Buy Box competition with Amazon");
+    }
+
+    return {
+      asin: p.asin,
+      title,
+      prediction,
+      action,
+      potential,
+      checklist
+    };
   });
 }
 
@@ -478,6 +518,20 @@ export async function POST(req: NextRequest) {
         netProfit,
         formattedNetProfit: formatINR(netProfit),
         netMargin,
+        financeAnalysis: netMargin >= 30 
+          ? `Excellent high-margin yield! Every unit sold generates ${formatINR(netProfit)} in pure profit, leaving substantial room for advertising budgets.`
+          : netMargin >= 15 
+          ? `Healthy standard yield. With a net margin of ${netMargin}%, each sale contributes ${formatINR(netProfit)} to operational cash flows.`
+          : `Tight margins detected (${netMargin}%). High Amazon referral fees (${formatINR(referralFee)}) or FBA logistics fees (${formatINR(fbaFee)}) are significantly squeezing profits. Sourcing at lower COGS is recommended.`,
+        buyBoxAnalysis: stats.buyBoxOwner === "Amazon"
+          ? `Amazon retail is actively holding the Buy Box. Direct competition against Amazon retail makes securing Buy Box shares extremely difficult. Recommend bundling offers or creating value packs.`
+          : stats.buyBoxOwner === "Suppressed"
+          ? `Buy Box is suppressed. Active price of ${formatINR(price)} likely exceeds MSRP ceilings. Align pricing closer to the 90-day average of ${formatINR(stats.priceAvg90)}.`
+          : stats.priceStability === "Price War Alert"
+          ? `Active price war! The current price has crashed to ${formatINR(price)}, which is ${Math.round(((stats.priceAvg90 - price) / stats.priceAvg90) * 100)}% below the 90-day average of ${formatINR(stats.priceAvg90)}. Audit repricer rules immediately.`
+          : stats.priceStability === "Highly Volatile"
+          ? `Pricing is showing high volatility. Fluctuating price averages can trigger Buy Box suppression. Standardize pricing policies.`
+          : `Buy Box is stable. The current price of ${formatINR(price)} is fully aligned with the 30-day average of ${formatINR(stats.priceAvg30)}, indicating secure brand control.`,
         bulletCount: stats.bulletCount,
         descriptionLength: stats.descriptionLength,
         buyBoxOwner: stats.buyBoxOwner,

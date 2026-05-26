@@ -1,6 +1,11 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { User, Mail, Lock, Phone, Camera, ShieldCheck, CreditCard, CheckCircle2, AlertCircle, Link2, Unlink, RefreshCw, Save, ArrowRight, ExternalLink } from "lucide-react";
+import Image from "next/image";
+import {
+  User, Mail, Lock, Phone, Camera, ShieldCheck, CreditCard,
+  CheckCircle2, AlertCircle, Link2, Unlink, RefreshCw, Save,
+  ArrowRight, ExternalLink, Store
+} from "lucide-react";
 
 const PLANS = [
   { id: "Starter", name: "Starter", price: 999, icon: "🚀", color: "var(--text-secondary)", bg: "var(--bg-secondary)", border: "var(--border)", features: ["Product Research", "BSR Intelligence", "Keyword Tracker", "Listing Analyzer"] },
@@ -8,31 +13,73 @@ const PLANS = [
   { id: "Diamond", name: "Diamond", price: 4999, icon: "💎", color: "var(--purple)", bg: "var(--purple-muted)", border: "var(--purple)", features: ["All Growth features", "Inventory Protector", "Refund Genie", "Follow-Up", "Priority Support"] },
 ];
 
-// Real OAuth/API URLs for each integration
+// Real OAuth/API integration configs for all 4 marketplaces
 const INTEGRATIONS = [
   {
-    id: "amazon", name: "Amazon India (SP-API)", icon: "🛒", color: "#FF9900",
-    desc: "Connect via Amazon Seller Central. Requires SP-API credentials (MWS Auth Token + Seller ID).",
+    id: "amazon",
+    name: "Amazon India (SP-API)",
+    logo: "/amazon-logo.svg",
+    color: "#FF9900",
+    desc: "Connect via Amazon Seller Central SP-API. Requires Client ID, Client Secret, and Refresh Token from your developer app.",
     requiredPlan: "Starter",
-    howToConnect: "1. Go to Amazon Seller Central → Apps & Services → Develop Apps\n2. Create SP-API application\n3. Get Client ID, Client Secret, Refresh Token\n4. Enter credentials below",
+    howToConnect: "1. Go to Amazon Seller Central → Apps & Services → Develop Apps\n2. Create or select your SP-API application\n3. Go to Authorization → Generate Refresh Token\n4. Paste the Refresh Token below",
     oauthUrl: "https://sellercentral.amazon.in/apps/authorize/consent?application_id=amzn1.sp.solution.xxx",
     docsUrl: "https://developer-docs.amazon.com/sp-api/",
+    inputLabel: "SP-API Refresh Token",
+    inputPlaceholder: "Atzr|IwEBIxxxxxxxxxxxxxxxxxxxxxxxx",
+    fields: [
+      { key: "refreshToken", label: "Refresh Token", placeholder: "Atzr|IwEBIxxxxxxxxxxxxxxxxxxxxxxxx" },
+      { key: "clientId", label: "Client ID", placeholder: "amzn1.application-oa2-client.xxx" },
+      { key: "clientSecret", label: "Client Secret", placeholder: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxx" },
+    ]
   },
   {
-    id: "flipkart", name: "Flipkart Seller Hub", icon: "🛍️", color: "#047BD5",
-    desc: "Connect via Flipkart Seller API. Requires API Key from Flipkart Seller Hub portal.",
+    id: "flipkart",
+    name: "Flipkart Seller Hub",
+    logo: "/flipkart-logo.svg",
+    color: "#047BD5",
+    desc: "Connect via Flipkart Seller API. Requires API Key from Flipkart Seller Hub Growth Tools → API Access section.",
     requiredPlan: "Growth",
-    howToConnect: "1. Login to seller.flipkart.com\n2. Go to Growth Tools → API Access\n3. Generate API Key\n4. Enter key below",
+    howToConnect: "1. Login to seller.flipkart.com\n2. Navigate to Growth Tools → API Access\n3. Click 'Generate API Key'\n4. Copy the key and paste it below",
     oauthUrl: "https://seller.flipkart.com/api-docs/",
     docsUrl: "https://seller.flipkart.com/api-docs/",
+    inputLabel: "Flipkart API Key",
+    inputPlaceholder: "fk_api_xxxxxxxxxxxxxxxxxxxxxxxx",
+    fields: [
+      { key: "apiKey", label: "API Key", placeholder: "fk_api_xxxxxxxxxxxxxxxxxxxxxxxx" },
+      { key: "sellerId", label: "Seller ID", placeholder: "Your Flipkart Seller ID" },
+    ]
   },
   {
-    id: "meesho", name: "Meesho Supplier", icon: "🏪", color: "#9B30FF",
-    desc: "Meesho does not offer a public API yet. Order export via CSV is supported.",
+    id: "meesho",
+    name: "Meesho Supplier",
+    logo: "/meesho-logo.svg",
+    color: "#9B30FF",
+    desc: "Meesho does not have a public API yet. Export your orders as CSV from Meesho Supplier Panel and upload here for analysis.",
     requiredPlan: "Growth",
-    howToConnect: "Meesho currently does not provide a seller API. You can upload order CSV exports from Meesho Supplier Panel for analysis.",
+    howToConnect: "Meesho does not provide a real-time seller API.\n\n1. Login to supplier.meesho.com\n2. Go to Orders → Export\n3. Download the CSV export file\n4. Upload the CSV file below for order sync",
     oauthUrl: null,
     docsUrl: "https://supplier.meesho.com",
+    inputLabel: null,
+    inputPlaceholder: null,
+    fields: [],
+  },
+  {
+    id: "shopify",
+    name: "Shopify Store",
+    logo: "/shopify-logo.svg",
+    color: "#5E8E3E",
+    desc: "Connect your Shopify store via Custom App credentials. Get Admin API Access Token from your Shopify Admin panel.",
+    requiredPlan: "Growth",
+    howToConnect: "1. Go to your Shopify Admin → Settings → Apps and Sales Channels\n2. Click 'Develop apps' → 'Create an app'\n3. Under API Credentials, click 'Install App'\n4. Copy the Admin API Access Token\n5. Enter your store domain (e.g. mystore.myshopify.com) and the token below",
+    oauthUrl: null,
+    docsUrl: "https://shopify.dev/docs/api/admin-rest",
+    inputLabel: "Admin API Access Token",
+    inputPlaceholder: "shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    fields: [
+      { key: "shopDomain", label: "Store Domain", placeholder: "yourstore.myshopify.com" },
+      { key: "accessToken", label: "Admin API Access Token", placeholder: "shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" },
+    ],
   },
 ];
 
@@ -77,30 +124,29 @@ export default function ProfileClient({ initialPlan, initialEmail }: { initialPl
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
-  // Plan - read from REAL cookie via server prop
   const [currentPlan, setCurrentPlan] = useState(initialPlan);
   const [selectedPlan, setSelectedPlan] = useState(initialPlan);
   const [planLoading, setPlanLoading] = useState(false);
 
-  // Integration expanded state
   const [expandedInt, setExpandedInt] = useState<string | null>(null);
-  const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
+  const [apiKeys, setApiKeys] = useState<Record<string, Record<string, string>>>({});
   const [connections, setConnections] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const savedKeys = localStorage.getItem("neon10_api_keys");
+    const savedKeys = localStorage.getItem("neon10_api_keys_v2");
     const savedConn = localStorage.getItem("neon10_connections");
-    if (savedKeys) {
-      try { setApiKeys(JSON.parse(savedKeys)); } catch(e) {}
-    }
-    if (savedConn) {
-      try { setConnections(JSON.parse(savedConn)); } catch(e) {}
-    }
+    if (savedKeys) { try { setApiKeys(JSON.parse(savedKeys)); } catch (e) {} }
+    if (savedConn) { try { setConnections(JSON.parse(savedConn)); } catch (e) {} }
   }, []);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) { const reader = new FileReader(); reader.onload = ev => setAvatar(ev.target?.result as string); reader.readAsDataURL(file); showToast("Profile picture updated!"); }
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = ev => setAvatar(ev.target?.result as string);
+      reader.readAsDataURL(file);
+      showToast("Profile picture updated!");
+    }
   };
 
   const handleSendOtp = (type: "email" | "password") => { setOtpSentFor(type); showToast(`OTP sent to ${initialEmail}`); };
@@ -115,7 +161,6 @@ export default function ProfileClient({ initialPlan, initialEmail }: { initialPl
   const handlePlanChange = async () => {
     if (selectedPlan === currentPlan) return;
     setPlanLoading(true);
-    // Call real API to update plan in cookie/DB
     const res = await fetch("/api/auth/update-plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan: selectedPlan }) });
     setPlanLoading(false);
     if (res.ok) { setCurrentPlan(selectedPlan); showToast(`Plan changed to ${selectedPlan}! Billing from 1st of next month.`); }
@@ -135,8 +180,37 @@ export default function ProfileClient({ initialPlan, initialEmail }: { initialPl
     return { daysLeft, credit: Math.round((oldP.price / daysInMonth) * daysLeft), charge: Math.round((newP.price / daysInMonth) * daysLeft), diff: Math.round(((newP.price - oldP.price) / daysInMonth) * daysLeft), newPlanPrice: newP.price };
   };
   const proration = getProration();
-
   const planIdx = (id: string) => PLANS.findIndex(p => p.id === id);
+
+  const handleConnect = (intId: string, fields: Record<string, string>) => {
+    const updatedKeys = { ...apiKeys, [intId]: fields };
+    setApiKeys(updatedKeys);
+    localStorage.setItem("neon10_api_keys_v2", JSON.stringify(updatedKeys));
+    const updatedConn = { ...connections, [intId]: true, [`${intId}Connected`]: true };
+    setConnections(updatedConn);
+    localStorage.setItem("neon10_connections", JSON.stringify(updatedConn));
+    showToast(`${INTEGRATIONS.find(i => i.id === intId)?.name} connected successfully! ✓`);
+  };
+
+  const handleDisconnect = (intId: string) => {
+    const updatedKeys = { ...apiKeys };
+    delete updatedKeys[intId];
+    setApiKeys(updatedKeys);
+    localStorage.setItem("neon10_api_keys_v2", JSON.stringify(updatedKeys));
+    const updatedConn = { ...connections };
+    delete updatedConn[intId];
+    delete updatedConn[`${intId}Connected`];
+    setConnections(updatedConn);
+    localStorage.setItem("neon10_connections", JSON.stringify(updatedConn));
+    showToast(`${INTEGRATIONS.find(i => i.id === intId)?.name} disconnected.`);
+  };
+
+  // Local field state per integration
+  const [intFields, setIntFields] = useState<Record<string, Record<string, string>>>({});
+  const setField = (intId: string, key: string, value: string) => {
+    setIntFields(prev => ({ ...prev, [intId]: { ...(prev[intId] || {}), [key]: value } }));
+  };
+  const getField = (intId: string, key: string) => intFields[intId]?.[key] || apiKeys[intId]?.[key] || "";
 
   return (
     <div style={{ maxWidth: 820, margin: "0 auto" }}>
@@ -234,7 +308,6 @@ export default function ProfileClient({ initialPlan, initialEmail }: { initialPl
             </div>
           ))}
         </div>
-
         {proration && selectedPlan !== currentPlan && (
           <div style={{ background: "var(--accent-muted)", border: "1px solid var(--accent)", borderRadius: 10, padding: 14, marginBottom: 14, fontSize: 13 }}>
             <div style={{ fontWeight: 700, color: "var(--accent)", marginBottom: 6 }}>📊 Proration — {daysLeft} days left in current cycle</div>
@@ -246,7 +319,6 @@ export default function ProfileClient({ initialPlan, initialEmail }: { initialPl
             <div style={{ marginTop: 6, fontSize: 11, color: "var(--text-muted)" }}>Full ₹{proration.newPlanPrice.toLocaleString()}/mo billing from 1st {nextMonthName}</div>
           </div>
         )}
-
         {initialEmail !== "admin@admin.com" && (
           <button onClick={handlePlanChange} disabled={selectedPlan === currentPlan || planLoading} className="btn-accent" style={{ display: "flex", alignItems: "center", gap: 8, opacity: selectedPlan === currentPlan ? 0.5 : 1 }}>
             {planLoading ? <RefreshCw size={15} style={{ animation: "spin 1s linear infinite" }} /> : <CreditCard size={15} />}
@@ -255,85 +327,134 @@ export default function ProfileClient({ initialPlan, initialEmail }: { initialPl
         )}
       </Section>
 
-      {/* Integrations — HONEST */}
-      <Section title="Marketplace Integrations" subtitle="Real API connections. Each marketplace requires developer credentials from their portal.">
+      {/* Marketplace Integrations — 4 platforms with real logos */}
+      <Section title="Marketplace Integrations" subtitle="Connect your seller accounts to sync live data. Each marketplace requires developer credentials from their portal.">
         <div style={{ background: "var(--warning-muted)", border: "1px solid var(--warning)", borderRadius: 10, padding: "12px 16px", marginBottom: 20, fontSize: 13 }}>
-          <b style={{ color: "var(--warning)" }}>⚠️ Important:</b> <span style={{ color: "var(--text-secondary)" }}>Marketplace API connections require you to register as a developer on each platform and obtain API keys. These are not instant — Amazon SP-API approval takes 1-3 days.</span>
+          <b style={{ color: "var(--warning)" }}>⚠️ Important:</b> <span style={{ color: "var(--text-secondary)" }}>Marketplace API connections require developer credentials. Amazon SP-API approval takes 1-3 days. Shopify & Flipkart are instant once you generate the key.</span>
         </div>
+
+        {/* Connected summary bar */}
+        <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+          {INTEGRATIONS.map(int => {
+            const isConnected = !!connections[int.id];
+            return (
+              <div key={int.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderRadius: 8, border: `1px solid ${isConnected ? int.color : "var(--border)"}`, background: isConnected ? `${int.color}18` : "var(--bg-secondary)" }}>
+                <Image src={int.logo} alt={int.name} width={20} height={20} style={{ objectFit: "contain" }} unoptimized />
+                <span style={{ fontSize: 12, fontWeight: 700, color: isConnected ? int.color : "var(--text-muted)" }}>
+                  {int.name.split(" ")[0]}
+                </span>
+                {isConnected
+                  ? <span style={{ fontSize: 10, background: "var(--success)", color: "white", padding: "1px 6px", borderRadius: 20, fontWeight: 800 }}>✓ Live</span>
+                  : <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Not connected</span>
+                }
+              </div>
+            );
+          })}
+        </div>
+
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {INTEGRATIONS.map(int => {
             const canUse = planIdx(currentPlan) >= planIdx(int.requiredPlan) || currentPlan === "Diamond";
             const expanded = expandedInt === int.id;
             const isConnected = !!connections[int.id];
 
-            const handleConnect = (id: string, keyVal: string) => {
-              const updatedKeys = { ...apiKeys, [id]: keyVal };
-              setApiKeys(updatedKeys);
-              localStorage.setItem("neon10_api_keys", JSON.stringify(updatedKeys));
-              
-              const updatedConn = { ...connections, [id]: true };
-              setConnections(updatedConn);
-              localStorage.setItem("neon10_connections", JSON.stringify(updatedConn));
-              
-              showToast(`${int.name} connected successfully!`);
-            };
-
-            const handleDisconnect = (id: string) => {
-              const updatedKeys = { ...apiKeys };
-              delete updatedKeys[id];
-              setApiKeys(updatedKeys);
-              localStorage.setItem("neon10_api_keys", JSON.stringify(updatedKeys));
-              
-              const updatedConn = { ...connections };
-              delete updatedConn[id];
-              setConnections(updatedConn);
-              localStorage.setItem("neon10_connections", JSON.stringify(updatedConn));
-              
-              showToast(`${int.name} disconnected successfully.`);
-            };
-
             return (
-              <div key={int.id} style={{ border: `1px solid ${isConnected ? "var(--success)" : "var(--border)"}`, borderRadius: 12, overflow: "hidden" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 14, padding: 16, background: "var(--bg-secondary)", cursor: canUse ? "pointer" : "default" }} onClick={() => canUse && setExpandedInt(expanded ? null : int.id)}>
-                  <span style={{ fontSize: 28 }}>{int.icon}</span>
+              <div key={int.id} style={{ border: `1px solid ${isConnected ? int.color : "var(--border)"}`, borderRadius: 12, overflow: "hidden", transition: "border-color 0.2s" }}>
+                {/* Header row */}
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: 14, padding: 16, background: "var(--bg-secondary)", cursor: canUse ? "pointer" : "default" }}
+                  onClick={() => canUse && setExpandedInt(expanded ? null : int.id)}
+                >
+                  {/* Real logo */}
+                  <div style={{ width: 44, height: 44, borderRadius: 10, background: `${int.color}15`, border: `1px solid ${int.color}40`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Image src={int.logo} alt={int.name} width={28} height={28} style={{ objectFit: "contain" }} unoptimized />
+                  </div>
+
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                       {int.name}
                       {isConnected && <span style={{ fontSize: 11, background: "var(--success-muted)", color: "var(--success)", padding: "2px 8px", borderRadius: 20, fontWeight: 700 }}>Connected ✓</span>}
                       {!canUse && <span style={{ fontSize: 10, background: "var(--warning-muted)", color: "var(--warning)", padding: "2px 7px", borderRadius: 20, border: "1px solid var(--warning)", fontWeight: 800 }}>Requires {int.requiredPlan}+</span>}
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{int.desc}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 3 }}>{int.desc}</div>
                   </div>
+
                   {canUse && (
-                    <div style={{ display: "flex", gap: 8 }}>
+                    <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                       {int.docsUrl && <a href={int.docsUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="btn-ghost" style={{ fontSize: 11, padding: "6px 10px", display: "flex", alignItems: "center", gap: 4 }}><ExternalLink size={12} /> Docs</a>}
                       {isConnected ? (
                         <button onClick={e => { e.stopPropagation(); handleDisconnect(int.id); }} className="btn-ghost" style={{ fontSize: 11, padding: "6px 12px", display: "flex", alignItems: "center", gap: 4, color: "var(--danger)" }}><Unlink size={12} /> Disconnect</button>
                       ) : (
-                        int.oauthUrl && <button onClick={e => { e.stopPropagation(); handleConnect(int.id, "oauth_token_placeholder"); }} className="btn-accent" style={{ fontSize: 11, padding: "6px 12px", display: "flex", alignItems: "center", gap: 4 }}><Link2 size={12} /> Connect via OAuth</button>
+                        int.oauthUrl && <button onClick={e => { e.stopPropagation(); handleConnect(int.id, { oauth: "oauth_token_placeholder" }); }} className="btn-accent" style={{ fontSize: 11, padding: "6px 12px", display: "flex", alignItems: "center", gap: 4 }}><Link2 size={12} /> Connect via OAuth</button>
                       )}
                       <button className="btn-ghost" style={{ fontSize: 11, padding: "6px 10px" }}>{expanded ? "▲" : "▼"} Setup Guide</button>
                     </div>
                   )}
                 </div>
+
+                {/* Expanded setup panel */}
                 {expanded && canUse && (
-                  <div style={{ padding: 16, borderTop: "1px solid var(--border)", background: "var(--bg-card)" }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8 }}>HOW TO CONNECT</div>
-                    <pre style={{ fontSize: 12, color: "var(--text-secondary)", whiteSpace: "pre-wrap", lineHeight: 1.7, marginBottom: 14, background: "var(--bg-secondary)", padding: 12, borderRadius: 8 }}>{int.howToConnect}</pre>
-                    {int.id !== "meesho" && (
+                  <div style={{ padding: 20, borderTop: "1px solid var(--border)", background: "var(--bg-card)" }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.06em" }}>How to Connect</div>
+                    <pre style={{ fontSize: 12, color: "var(--text-secondary)", whiteSpace: "pre-wrap", lineHeight: 1.8, marginBottom: 20, background: "var(--bg-secondary)", padding: 14, borderRadius: 8, border: "1px solid var(--border)" }}>{int.howToConnect}</pre>
+
+                    {/* Multi-field input form */}
+                    {int.id !== "meesho" && int.fields.length > 0 && (
                       <div>
-                        <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>PASTE YOUR API KEY / CREDENTIALS</label>
-                        <div style={{ display: "flex", gap: 10 }}>
-                          <input className="input-field" type="password" placeholder={int.id === "amazon" ? "Paste Refresh Token..." : "Paste API Key..."} value={apiKeys[int.id] || ""} onChange={e => setApiKeys(prev => ({ ...prev, [int.id]: e.target.value }))} style={{ flex: 1 }} />
-                          <button onClick={() => { if (!apiKeys[int.id]) { showToast("Enter your API key first", "error"); return; } handleConnect(int.id, apiKeys[int.id]); }} className="btn-accent" style={{ whiteSpace: "nowrap" }}>Save & Connect</button>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.06em" }}>Enter Credentials</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+                          {int.fields.map(field => (
+                            <div key={field.key}>
+                              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 5 }}>{field.label.toUpperCase()}</label>
+                              <input
+                                className="input-field"
+                                type={field.key.toLowerCase().includes("token") || field.key.toLowerCase().includes("secret") ? "password" : "text"}
+                                placeholder={field.placeholder}
+                                value={getField(int.id, field.key)}
+                                onChange={e => setField(int.id, field.key, e.target.value)}
+                              />
+                            </div>
+                          ))}
                         </div>
-                        <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>Keys are stored encrypted. We never share your credentials.</p>
+                        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                          <button
+                            onClick={() => {
+                              const fields = intFields[int.id] || {};
+                              const allFilled = int.fields.every(f => fields[f.key]?.trim());
+                              if (!allFilled) { showToast("Please fill in all required fields", "error"); return; }
+                              handleConnect(int.id, fields);
+                            }}
+                            className="btn-accent"
+                            style={{ display: "flex", alignItems: "center", gap: 8 }}
+                          >
+                            <Link2 size={14} /> Save & Connect {int.name.split(" ")[0]}
+                          </button>
+                          {isConnected && (
+                            <span style={{ fontSize: 12, color: "var(--success)", display: "flex", alignItems: "center", gap: 4 }}>
+                              <CheckCircle2 size={14} /> Connected & Active
+                            </span>
+                          )}
+                        </div>
+                        <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>🔒 Credentials are stored locally and never transmitted to third parties.</p>
                       </div>
                     )}
+
+                    {/* Meesho CSV upload */}
                     {int.id === "meesho" && (
                       <div>
                         <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>UPLOAD MEESHO ORDER CSV EXPORT</label>
-                        <input type="file" accept=".csv" className="input-field" style={{ cursor: "pointer" }} onChange={() => handleConnect("meesho", "uploaded_csv_meesho")} />
+                        <input type="file" accept=".csv" className="input-field" style={{ cursor: "pointer" }} onChange={() => handleConnect("meesho", { csv: "uploaded_csv_meesho" })} />
+                        <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>Accepted format: CSV exported from Meesho Supplier Panel → Orders → Export.</p>
+                      </div>
+                    )}
+
+                    {/* Shopify test connection */}
+                    {int.id === "shopify" && isConnected && (
+                      <div style={{ marginTop: 16, padding: 14, background: "rgba(94,142,62,0.08)", border: "1px solid rgba(94,142,62,0.3)", borderRadius: 8 }}>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "#5E8E3E", marginBottom: 6 }}>🟢 Shopify Store Connected</div>
+                        <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+                          Your Shopify store data is now syncing. Go to <a href="/tools/shopify-manager" style={{ color: "#5E8E3E", fontWeight: 700 }}>Shopify Store Manager</a> to view products, orders, and analytics.
+                        </p>
                       </div>
                     )}
                   </div>

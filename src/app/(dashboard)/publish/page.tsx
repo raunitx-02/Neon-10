@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { Upload, Package, CheckCircle2, AlertCircle, RefreshCw, Plus, X, Sparkles, ShoppingBag, Eye, Trash2, Calendar } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -15,9 +16,10 @@ interface PublishedItem {
 }
 
 const MARKETPLACES = [
-  { id: "amazon", name: "Amazon India", icon: "🛒", color: "#FF9900", bg: "rgba(255,153,0,0.1)", border: "#FF9900", categories: ["Electronics", "Clothing", "Home & Kitchen", "Sports", "Books", "Toys", "Grocery"] },
-  { id: "flipkart", name: "Flipkart", icon: "🛍️", color: "#047BD5", bg: "rgba(4,123,213,0.1)", border: "#047BD5", categories: ["Mobiles", "Fashion", "Electronics", "Home", "Appliances", "Books", "Sports"] },
-  { id: "meesho", name: "Meesho", icon: "🏪", color: "#9B30FF", bg: "rgba(155,48,255,0.1)", border: "#9B30FF", categories: ["Women Ethnic", "Women Western", "Men", "Kids", "Home & Kitchen", "Beauty", "Bags"] },
+  { id: "amazon", name: "Amazon India", icon: "🛒", color: "#FF9900", bg: "rgba(255,153,0,0.1)", border: "#FF9900", logo: "/amazon-logo.svg", categories: ["Electronics", "Clothing", "Home & Kitchen", "Sports", "Books", "Toys", "Grocery"] },
+  { id: "flipkart", name: "Flipkart", icon: "🛍️", color: "#047BD5", bg: "rgba(4,123,213,0.1)", border: "#047BD5", logo: "/flipkart-logo.svg", categories: ["Mobiles", "Fashion", "Electronics", "Home", "Appliances", "Books", "Sports"] },
+  { id: "meesho", name: "Meesho", icon: "🏪", color: "#9B30FF", bg: "rgba(155,48,255,0.1)", border: "#9B30FF", logo: "/meesho-logo.svg", categories: ["Women Ethnic", "Women Western", "Men", "Kids", "Home & Kitchen", "Beauty", "Bags"] },
+  { id: "shopify", name: "Shopify Store", icon: "🟢", color: "#5E8E3E", bg: "rgba(94,142,62,0.1)", border: "#5E8E3E", logo: "/shopify-logo.svg", categories: ["Apparel", "Electronics", "Home Decor", "Health & Beauty", "Sports", "Food & Drink", "Art & Crafts", "Jewelry"] },
 ];
 
 const DEFAULT_PUBLISHED_ITEMS: PublishedItem[] = [
@@ -73,6 +75,9 @@ export default function PublishPage() {
   const [flipkartCategory, setFlipkartCategory] = useState("Home");
   const [flipkartListingType, setFlipkartListingType] = useState("Flipkart Fulfilled");
   const [meeshoCategory, setMeeshoCategory] = useState("Home & Kitchen");
+  const [shopifyCollection, setShopifyCollection] = useState("All Products");
+  const [shopifyProductType, setShopifyProductType] = useState("Apparel");
+  const [shopifyInventoryPolicy, setShopifyInventoryPolicy] = useState("deny");
 
   // Local storage published items
   const [publishedListings, setPublishedListings] = useState<PublishedItem[]>([]);
@@ -197,7 +202,7 @@ export default function PublishPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Multi-Channel Product Publisher</h1>
-          <p className="page-subtitle">Draft product profiles and dispatch listings to Amazon India, Flipkart, and Meesho seller networks concurrently</p>
+          <p className="page-subtitle">Draft product profiles and dispatch listings to Amazon India, Flipkart, Meesho, and your Shopify Store concurrently</p>
         </div>
         <button onClick={autoFillAI} className="btn-ghost" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
           <Sparkles size={14} color="var(--accent)" /> AI Auto-Fill Specifications
@@ -209,7 +214,7 @@ export default function PublishPage() {
         <h2 style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
           <ShoppingBag size={18} color="var(--accent)" /> Target Marketplace Integrations
         </h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16 }}>
           {MARKETPLACES.map(m => {
             const isSelected = selectedMarkets.includes(m.id);
             const isFinished = publishedMarkets.includes(m.id);
@@ -224,7 +229,7 @@ export default function PublishPage() {
                   borderRadius: 12, 
                   cursor: publishing ? "not-allowed" : "pointer",
                   border: `2px solid ${isSelected ? m.border : "var(--border)"}`,
-                  background: isSelected ? m.bg : "rgba(0,0,0,0.15)",
+                  background: isSelected ? m.bg : "rgba(0,0,0,0.05)",
                   transition: "all 0.2s", 
                   position: "relative",
                   display: "flex",
@@ -245,8 +250,11 @@ export default function PublishPage() {
                 )}
 
                 <div>
-                  <div style={{ fontSize: 32, marginBottom: 8 }}>{m.icon}</div>
-                  <div style={{ fontWeight: 800, fontSize: 15, color: isSelected ? m.color : "var(--text-primary)" }}>{m.name}</div>
+                  {/* Real marketplace logo */}
+                  <div style={{ width: 44, height: 44, borderRadius: 10, background: m.bg, border: `1px solid ${m.border}40`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
+                    <Image src={m.logo} alt={m.name} width={28} height={28} style={{ objectFit: "contain" }} unoptimized />
+                  </div>
+                  <div style={{ fontWeight: 800, fontSize: 14, color: isSelected ? m.color : "var(--text-primary)" }}>{m.name}</div>
                 </div>
                 <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>
                   {isFinished ? "✓ Channel Dispatched" : isCurrent ? "Publishing Catalog..." : isSelected ? "✓ Click to Deselect" : "Click to Select"}
@@ -365,7 +373,9 @@ export default function PublishPage() {
             return (
               <div key={mId} className="glass-card" style={{ padding: 20, border: `1px solid ${m.border}35` }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-                  <span style={{ fontSize: 20 }}>{m.icon}</span>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: m.bg, border: `1px solid ${m.border}50`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Image src={m.logo} alt={m.name} width={20} height={20} style={{ objectFit: "contain" }} unoptimized />
+                  </div>
                   <span style={{ fontWeight: 800, fontSize: 14, color: m.color }}>{m.name} Parameters</span>
                 </div>
                 
@@ -416,6 +426,37 @@ export default function PublishPage() {
                       </div>
                       <div style={{ background: "rgba(155,48,255,0.06)", borderRadius: 8, padding: 12, fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.4 }}>
                         🛡️ Meesho shipping labels are auto-generated. Ensure dimensional details are audited accurately to lower shipping tier penalties.
+                      </div>
+                    </>
+                  )}
+
+                  {mId === "shopify" && (
+                    <>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>SHOPIFY COLLECTION</label>
+                        <select className="input-field" style={{ fontSize: 13 }} value={shopifyCollection} onChange={e => setShopifyCollection(e.target.value)}>
+                          <option>All Products</option>
+                          <option>New Arrivals</option>
+                          <option>Bestsellers</option>
+                          <option>Featured</option>
+                          <option>Sale</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>SHOPIFY PRODUCT TYPE</label>
+                        <select className="input-field" style={{ fontSize: 13 }} value={shopifyProductType} onChange={e => setShopifyProductType(e.target.value)}>
+                          {m.categories.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>INVENTORY POLICY</label>
+                        <select className="input-field" style={{ fontSize: 13 }} value={shopifyInventoryPolicy} onChange={e => setShopifyInventoryPolicy(e.target.value)}>
+                          <option value="deny">Deny Orders When Out of Stock</option>
+                          <option value="continue">Continue Selling When Out of Stock</option>
+                        </select>
+                      </div>
+                      <div style={{ background: "rgba(94,142,62,0.06)", borderRadius: 8, padding: 12, fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.4 }}>
+                        🟢 Product will be published as a draft to your Shopify store. You can manually set pricing variants after review.
                       </div>
                     </>
                   )}

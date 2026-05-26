@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { Bell, Search, HelpCircle, X, Send, Check, CheckCheck, ArrowRight, ChevronDown } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import Link from "next/link";
+import Image from "next/image";
 
 const NOTIFICATIONS = [
   { id: 1, type: "alert", icon: "🚨", title: "BSR Drop Detected", body: "ASIN B08XYZ123 BSR dropped from #1,200 to #2,800 in last 24h.", time: "5 min ago", read: false },
@@ -12,9 +13,15 @@ const NOTIFICATIONS = [
   { id: 5, type: "info", icon: "💡", title: "AI Copilot Insight", body: "Your conversion rate on ASIN B09ABC456 can be improved by 18% with updated images.", time: "2 days ago", read: true },
 ];
 
+const MARKETPLACES = [
+  { id: "amazon", label: "Amazon", color: "#FF9900", logo: "/amazon-logo.svg" },
+  { id: "flipkart", label: "Flipkart", color: "#047BD5", logo: "/flipkart-logo.svg" },
+  { id: "meesho", label: "Meesho", color: "#9B30FF", logo: "/meesho-logo.svg" },
+  { id: "shopify", label: "Shopify", color: "#5E8E3E", logo: "/shopify-logo.svg" },
+] as const;
+
 function NotificationPanel({ onClose }: { onClose: () => void }) {
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
-
   const markAllRead = () => setNotifications(n => n.map(x => ({ ...x, read: true })));
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -26,7 +33,6 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
       display: "flex", flexDirection: "column",
       animation: "slideInRight 0.25s ease",
     }}>
-      {/* Header */}
       <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h3 style={{ fontWeight: 800, fontSize: 16, color: "var(--text-primary)" }}>Notifications</h3>
@@ -44,7 +50,6 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
         </div>
       </div>
 
-      {/* Notifications */}
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
         {notifications.map(n => (
           <div
@@ -77,7 +82,6 @@ function NotificationPanel({ onClose }: { onClose: () => void }) {
           View All Notifications <ArrowRight size={14} />
         </button>
       </div>
-
       <style>{`@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }`}</style>
     </div>
   );
@@ -164,6 +168,19 @@ export default function Topbar({ title, user = "User", plan = "Starter" }: { tit
   const [market, setMarket] = useState("amazon");
   const unreadCount = NOTIFICATIONS.filter(n => !n.read).length;
 
+  // Persist selected marketplace globally
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("neon10_active_marketplace");
+      if (saved && MARKETPLACES.some(m => m.id === saved)) setMarket(saved);
+    } catch (e) {}
+  }, []);
+
+  const handleMarketChange = (id: string) => {
+    setMarket(id);
+    try { localStorage.setItem("neon10_active_marketplace", id); } catch (e) {}
+  };
+
   const displayName = user
     ? user.includes("@")
       ? user.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, c => c.toUpperCase())
@@ -171,13 +188,10 @@ export default function Topbar({ title, user = "User", plan = "Starter" }: { tit
     : "Account";
   const initials = displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
 
-  // Close notification panel on outside click
   const panelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        // allow bell button clicks
-      }
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {}
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -213,24 +227,47 @@ export default function Topbar({ title, user = "User", plan = "Starter" }: { tit
             />
           </div>
 
-          {/* Marketplace Switcher */}
+          {/* Marketplace Switcher — 4 platforms with real logos */}
           <div style={{ display: "flex", alignItems: "center", background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: 10, padding: 4, gap: 2 }}>
-            {[
-              { id: "amazon", label: "🛒 Amazon", color: "#FF9900" },
-              { id: "flipkart", label: "🛍️ Flipkart", color: "#047BD5" },
-              { id: "meesho", label: "🏪 Meesho", color: "#9B30FF" },
-            ].map(m => (
-              <button
-                key={m.id}
-                onClick={() => setMarket(m.id)}
-                style={{
-                  padding: "6px 12px", borderRadius: 7, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700,
-                  background: market === m.id ? m.color : "transparent",
-                  color: market === m.id ? "white" : "var(--text-muted)",
-                  transition: "all 0.15s",
-                }}
-              >{m.label}</button>
-            ))}
+            {MARKETPLACES.map(m => {
+              const active = market === m.id;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => handleMarketChange(m.id)}
+                  title={m.label}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "5px 11px",
+                    borderRadius: 7,
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    background: active ? m.color : "transparent",
+                    color: active ? "white" : "var(--text-muted)",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  <Image
+                    src={m.logo}
+                    alt={m.label}
+                    width={16}
+                    height={16}
+                    style={{
+                      objectFit: "contain",
+                      filter: active ? "brightness(0) invert(1)" : "none",
+                      transition: "filter 0.15s",
+                    }}
+                    unoptimized
+                  />
+                  <span style={{ display: "none" }}>{/* sr-only label */}{m.label}</span>
+                  <span className="market-label">{m.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -292,15 +329,17 @@ export default function Topbar({ title, user = "User", plan = "Starter" }: { tit
         </div>
       </header>
 
-      {/* Notification Panel */}
       {notifOpen && (
         <div ref={panelRef}>
           <NotificationPanel onClose={() => setNotifOpen(false)} />
         </div>
       )}
 
-      {/* Contact Modal */}
       {contactOpen && <ContactModal onClose={() => setContactOpen(false)} />}
+
+      <style>{`
+        @media (max-width: 900px) { .market-label { display: none !important; } }
+      `}</style>
     </>
   );
 }

@@ -2,12 +2,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import {
   LayoutDashboard, Search, KeyRound, FileText, Settings, BarChart3,
   Wrench, ChevronRight, ChevronLeft, Bell, Package, TrendingUp,
   ShieldCheck, RefreshCcw, Mail, Boxes, Zap, Cpu, QrCode, Link2,
   Sparkles, Target, BookOpen, FlaskConical, IndianRupee, Truck, ScanLine, Lock, UserCircle,
-  Upload, Store, Image as ImageIcon
+  Upload, Store, Image as ImageIcon, ShoppingBag
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -38,6 +39,7 @@ const PLAN_ACCESS: Record<string, string[]> = {
     "/tools/scanner",
     "/tools/copilot",
     "/tools/meesho-optimizer",
+    "/tools/shopify-manager",
     "/publish",
   ],
   Diamond: [] // Diamond has everything
@@ -116,6 +118,7 @@ const nav = [
     children: [
       { label: "AI Seller Scanner", href: "/tools/scanner", icon: ScanLine },
       { label: "AI Seller Copilot", href: "/tools/copilot", icon: Sparkles },
+      { label: "Shopify Store Manager", href: "/tools/shopify-manager", icon: ShoppingBag },
       { label: "Meesho Shipping Optimizer", href: "/tools/meesho-optimizer", icon: Package },
       { label: "GST Invoice & Calculator", href: "/tools/gst-calculator", icon: IndianRupee },
       { label: "Logistics Estimator", href: "/tools/logistics-estimator", icon: Truck },

@@ -1,7 +1,46 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, Send, Bot, User, ArrowRight, TrendingUp } from "lucide-react";
+import Image from "next/image";
+import { Sparkles, Send, Bot, User, TrendingUp } from "lucide-react";
+
+type Platform = "amazon" | "flipkart" | "meesho" | "shopify";
+
+const PLATFORMS: { id: Platform; name: string; logo: string; color: string }[] = [
+  { id: "amazon", name: "Amazon", logo: "/amazon-logo.svg", color: "#FF9900" },
+  { id: "flipkart", name: "Flipkart", logo: "/flipkart-logo.svg", color: "#047BD5" },
+  { id: "meesho", name: "Meesho", logo: "/meesho-logo.svg", color: "#9B30FF" },
+  { id: "shopify", name: "Shopify", logo: "/shopify-logo.svg", color: "#5E8E3E" },
+];
+
+const QUICK_PROMPTS: Record<Platform, string[]> = {
+  amazon: [
+    "Meri sales kyu gir rahi hai?",
+    "Find hijacker on my listing",
+    "How to rank on page 1?",
+    "Optimize PPC for my ASIN",
+    "Analyze my BSR trend",
+  ],
+  flipkart: [
+    "How to win Flipkart Assured badge?",
+    "Why is my Flipkart listing not ranking?",
+    "Flipkart pricing strategy tips",
+    "How to improve my seller rating?",
+  ],
+  meesho: [
+    "How to reduce Meesho returns?",
+    "Best categories to sell on Meesho?",
+    "Meesho penalty avoidance tips",
+    "How to increase Meesho orders?",
+  ],
+  shopify: [
+    "How to improve my Shopify conversion rate?",
+    "Best Shopify apps for Indian sellers?",
+    "How to set up Shopify abandoned cart recovery?",
+    "Shopify SEO optimization checklist",
+    "How to run a successful Shopify discount campaign?",
+  ],
+};
 
 interface Message {
   id: string;
@@ -25,11 +64,12 @@ const formatMarkdown = (text: string) => {
 };
 
 export default function CopilotPage() {
+  const [platform, setPlatform] = useState<Platform>("amazon");
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       role: "ai",
-      content: "Hello! I am your Neon 10 AI Seller Copilot. I analyze your account health in real-time. Ask me anything like **'Meri sales kyu gir rahi hai?'** or **'How do I fix my BSR?'**"
+      content: "Hello! I am your Neon 10 AI Seller Copilot. I can advise you across **Amazon, Flipkart, Meesho, and Shopify**. Ask me anything like **'Meri sales kyu gir rahi hai?'**, **'How do I fix my Shopify conversion rate?'**, or **'How to win Flipkart Assured badge?'**"
     }
   ]);
   const [input, setInput] = useState("");
@@ -56,7 +96,7 @@ export default function CopilotPage() {
       const res = await fetch("/api/amazon/copilot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, platform }),
       });
       const data = await res.json();
       
@@ -69,12 +109,8 @@ export default function CopilotPage() {
     }
   };
 
-  const quickPrompts = [
-    "Meri sales kyu gir rahi hai?",
-    "Find hijacker on my listing",
-    "How to rank on page 1?",
-    "Optimize PPC for B09W9FND7L"
-  ];
+  const quickPrompts = QUICK_PROMPTS[platform];
+  const activePlatform = PLATFORMS.find(p => p.id === platform)!;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 100px)", maxWidth: 900, margin: "0 auto" }}>
@@ -83,8 +119,28 @@ export default function CopilotPage() {
           <h1 className="page-title" style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <Sparkles color="var(--purple)" size={28} /> AI Seller Copilot
           </h1>
-          <p className="page-subtitle">Your personal account growth advisor and AI analyst.</p>
+          <p className="page-subtitle">Your personal growth advisor for Amazon, Flipkart, Meesho & Shopify — all in one AI.</p>
         </div>
+      </div>
+
+      {/* Platform switcher */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 16, overflowX: "auto", flexShrink: 0 }}>
+        {PLATFORMS.map(p => (
+          <button
+            key={p.id}
+            onClick={() => setPlatform(p.id)}
+            style={{
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "7px 14px", borderRadius: 50, cursor: "pointer",
+              background: platform === p.id ? `${p.color}18` : "var(--bg-secondary)",
+              border: `1.5px solid ${platform === p.id ? p.color : "var(--border)"}`,
+              transition: "all 0.15s", whiteSpace: "nowrap" as const,
+            }}
+          >
+            <Image src={p.logo} alt={p.name} width={16} height={16} style={{ objectFit: "contain" }} unoptimized />
+            <span style={{ fontSize: 12, fontWeight: 700, color: platform === p.id ? p.color : "var(--text-muted)" }}>{p.name}</span>
+          </button>
+        ))}
       </div>
 
       <div className="glass-card" style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>

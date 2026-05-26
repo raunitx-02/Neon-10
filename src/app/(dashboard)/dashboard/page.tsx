@@ -71,7 +71,7 @@ export default function DashboardPage({ searchParams }: { searchParams: Promise<
       const connections = localStorage.getItem("neon10_connections");
       if (connections) {
         const parsed = JSON.parse(connections);
-        if (parsed.amazonConnected || parsed.flipkartConnected || parsed.meeshoConnected) {
+        if (parsed.amazonConnected || parsed.flipkartConnected || parsed.meeshoConnected || parsed.shopifyConnected) {
           setIsConnected(true);
         }
       }
@@ -101,7 +101,7 @@ export default function DashboardPage({ searchParams }: { searchParams: Promise<
             <span style={{ fontSize: 22 }}>📊</span>
             <div>
               <div style={{ fontWeight: 700, color: "var(--blue)", fontSize: 14 }}>Showing Sample / Demo Data</div>
-              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Connect your Amazon, Flipkart or Meesho seller account in Profile → Integrations to see your real sales data.</div>
+              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>Connect your Amazon, Flipkart, Meesho or Shopify seller account in Profile → Integrations to see your real sales data.</div>
             </div>
           </div>
           <a href="/profile" style={{ textDecoration: "none" }}><button className="btn-accent" style={{ fontSize: 13, whiteSpace: "nowrap" }}>Connect Account →</button></a>
