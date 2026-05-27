@@ -6,8 +6,6 @@ import {
 } from "lucide-react";
 
 const CATEGORIES = [
-  { id: "16371098031", name: "Amazon Launchpad", icon: "🚀" },
-  { id: "20690678031", name: "Amazon Renewed", icon: "♻️" },
   { id: "1661666031", name: "Apps & Games", icon: "📱" },
   { id: "4202275031", name: "Baby Products", icon: "👶" },
   { id: "2454169031", name: "Bags, Wallets and Luggage", icon: "🎒" },
@@ -40,7 +38,7 @@ const CATEGORIES = [
 ];
 
 export default function TrendingProducts() {
-  const [activeNode, setActiveNode] = useState("16371098031");
+  const [activeNode, setActiveNode] = useState("12365334031"); // Default to Electronics
   const [products, setProducts] = useState<any[]>([]);
   const [meta, setMeta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
