@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Upload, Package, CheckCircle2, AlertCircle, RefreshCw, Plus, X, Sparkles, ShoppingBag, Eye, Trash2, Calendar, ChevronDown, ChevronRight } from "lucide-react";
+import { Upload, Package, CheckCircle2, AlertCircle, RefreshCw, Plus, X, Sparkles, ShoppingBag, Eye, Trash2, Calendar, ChevronDown, ChevronRight, Image as ImageIcon } from "lucide-react";
 import confetti from "canvas-confetti";
 
 interface PublishedItem {
