@@ -6,7 +6,6 @@ import {
 } from "lucide-react";
 
 const CATEGORIES = [
-  { id: "1661666031", name: "Apps & Games", icon: "📱" },
   { id: "4202275031", name: "Baby Products", icon: "👶" },
   { id: "2454169031", name: "Bags, Wallets and Luggage", icon: "🎒" },
   { id: "21844985031", name: "Beauty", icon: "💄" },
@@ -16,7 +15,6 @@ const CATEGORIES = [
   { id: "976392031", name: "Computers & Accessories", icon: "💻" },
   { id: "12365334031", name: "Electronics", icon: "🔌" },
   { id: "15386965031", name: "Garden & Outdoors", icon: "🌱" },
-  { id: "4048867031", name: "Gift Cards", icon: "🎁" },
   { id: "2454178031", name: "Grocery & Gourmet Foods", icon: "🛒" },
   { id: "1350384031", name: "Health & Personal Care", icon: "⚕️" },
   { id: "99967842031", name: "Home & Kitchen", icon: "🏠" },

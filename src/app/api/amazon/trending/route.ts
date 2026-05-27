@@ -4,7 +4,6 @@ export const dynamic = "force-dynamic";
 // Amazon India (domain=10) BSR Category Node IDs
 // These are real Amazon India browse node IDs for bestseller lists
 const CATEGORY_NODES: Record<string, { nodeId: string; name: string }> = {
-  "1661666031": { nodeId: "1661666031", name: "Apps & Games" },
   "4202275031": { nodeId: "4202275031", name: "Baby Products" },
   "2454169031": { nodeId: "2454169031", name: "Bags, Wallets and Luggage" },
   "21844985031": { nodeId: "21844985031", name: "Beauty" },
@@ -14,7 +13,6 @@ const CATEGORY_NODES: Record<string, { nodeId: string; name: string }> = {
   "976392031": { nodeId: "976392031", name: "Computers & Accessories" },
   "12365334031": { nodeId: "12365334031", name: "Electronics" },
   "15386965031": { nodeId: "15386965031", name: "Garden & Outdoors" },
-  "4048867031": { nodeId: "4048867031", name: "Gift Cards" },
   "2454178031": { nodeId: "2454178031", name: "Grocery & Gourmet Foods" },
   "1350384031": { nodeId: "1350384031", name: "Health & Personal Care" },
   "99967842031": { nodeId: "99967842031", name: "Home & Kitchen" },
