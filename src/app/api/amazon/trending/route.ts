@@ -57,7 +57,7 @@ export async function GET(request: Request) {
       const searchData = await searchRes.json();
       if (searchData.products && searchData.products.length > 0) {
         // search endpoint only returns basic ASINs, not full stats, so we still pass them to the detail query
-        rankedAsins = searchData.products.slice(0, 50);
+        rankedAsins = searchData.products.slice(0, 50).map((p: any) => p.asin);
       } else {
         return NextResponse.json({ error: "No bestseller data returned.", nodeUsed: node.nodeId, categoryName: node.name }, { status: 404 });
       }
