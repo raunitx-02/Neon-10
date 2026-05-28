@@ -1,12 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import Razorpay from "razorpay";
 import { cookies } from "next/headers";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID === "dummy_key") {
+      throw new Error("SERVER MISCONFIGURATION: Razorpay Key ID is missing. Cannot process payments.");
+    }
+    if (!process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET === "dummy_secret") {
+      throw new Error("SERVER MISCONFIGURATION: Razorpay Key Secret is missing. Cannot process payments.");
+    }
+
     const razorpay = new Razorpay({
-      key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "dummy_key",
-      key_secret: process.env.RAZORPAY_KEY_SECRET || "dummy_secret",
+      key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
 
     const cookieStore = await cookies();

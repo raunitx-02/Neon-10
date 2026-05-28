@@ -10,54 +10,7 @@ import {
 } from "recharts";
 import { parseKeepaCsv, KEEPA_INDICES } from "@/lib/keepaUtils";
 
-const mockBsrHistory = [
-  { day: "May 01", rank: 1240 },
-  { day: "May 03", rank: 1100 },
-  { day: "May 05", rank: 950 },
-  { day: "May 07", rank: 1050 },
-  { day: "May 09", rank: 820 },
-  { day: "May 11", rank: 740 },
-  { day: "May 13", rank: 620 },
-];
 
-const trendingProducts = [
-  {
-    asin: "B08N5KWB9H",
-    name: "Aero Dynamics Wireless Ergo Mouse",
-    bsr: 12,
-    change: +45,
-    category: "Electronics",
-    price: "₹4,199",
-    img: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=200&h=200&fit=crop"
-  },
-  {
-    asin: "B09L1W3X2M",
-    name: "Lumina Pro LED Desk Lamp",
-    bsr: 45,
-    change: +120,
-    category: "Home Office",
-    price: "₹2,499",
-    img: "https://images.unsplash.com/photo-1534073828943-f801091bb18c?w=200&h=200&fit=crop"
-  },
-  {
-    asin: "B07ZPC9QD4",
-    name: "AquaHydrate Smart Bottle",
-    bsr: 89,
-    change: +210,
-    category: "Sports",
-    price: "₹2,899",
-    img: "https://images.unsplash.com/photo-1523362622602-4c740deda5f2?w=200&h=200&fit=crop"
-  },
-  {
-    asin: "B0BMQ8Y9K1",
-    name: "Zenith Noise Cancelling Headphones",
-    bsr: 5,
-    change: +8,
-    category: "Electronics",
-    price: "₹24,999",
-    img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop"
-  }
-];
 
 export default function BsrIntelligence() {
   const [asin, setAsin] = useState("");

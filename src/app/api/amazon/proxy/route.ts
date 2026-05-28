@@ -14,10 +14,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Missing required SP-API credentials" }, { status: 400 });
       }
 
-      // If the user provides demo credentials, bypass for demonstration
-      if (refreshToken.startsWith("demo_") || refreshToken === "Atzr|IwEBIxxxxxxxxxxxxxxxxxxxxxxxx") {
-        return NextResponse.json({ success: true, message: "Demo SP-API verified" });
-      }
+      // No demo bypass - strict live checking only
 
       // Actual SP-API Token generation request to LWA (Login with Amazon)
       const tokenUrl = "https://api.amazon.com/auth/o2/token";

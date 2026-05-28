@@ -18,10 +18,7 @@ function hashPassword(password: string) {
 async function sendOtpEmail(email: string, otp: string, subject: string, heading: string, body: string) {
   const resend = getResend();
   if (!resend) {
-    // Dev fallback: print OTP to terminal
-    console.warn("⚠️  RESEND_API_KEY not set — OTP printed below:");
-    console.log(`\n🔑  OTP for ${email}: ${otp}\n`);
-    return;
+    throw new Error("SERVER MISCONFIGURATION: RESEND_API_KEY is missing in environment variables. Email OTP cannot be sent. Please configure your server settings.");
   }
 
   const { error } = await resend.emails.send({

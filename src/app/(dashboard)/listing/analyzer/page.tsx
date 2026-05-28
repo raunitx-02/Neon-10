@@ -29,27 +29,34 @@ export default function ListingAnalyzerPage() {
     try {
       const res = await fetch(`/api/amazon/keepa?asin=${searchAsin.toUpperCase().trim()}`);
       
-      // Parse response — use fallback mock values if Keepa is unavailable
       let data: any = {};
       if (res.ok) {
         data = await res.json();
         if (data.error) {
-          console.warn("Keepa returned error:", data.error, "— using fallback values.");
-          data = {};
+          setErrorMsg(`Keepa Error: ${data.error}`);
+          setLoading(false);
+          return;
         }
       } else {
-        console.warn("Keepa API non-ok response:", res.status, "— using fallback values.");
-        setErrorMsg("Keepa API unavailable — showing estimated audit data.");
+        setErrorMsg("Keepa API unavailable.");
+        setLoading(false);
+        return;
       }
 
-      // Keepa raw response fields or fallback mock values
-      const titleText = data.title || "Premium Bamboo Cutting Board Set - Complete Kitchen Wood Chopping Block";
-      const imagesList = data.images || ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400"];
-      const brandName = data.brand || "EcoHome";
-      const catName = data.category || "Home & Kitchen";
-      const priceStr = data.price || "₹2,499";
-      const ratingVal = data.rating || 4.1;
-      const reviewsCount = data.reviews || 84;
+      if (!data.title) {
+        setErrorMsg("Failed to retrieve listing details from Keepa. The ASIN may be invalid or missing.");
+        setLoading(false);
+        return;
+      }
+
+      // Keepa raw response fields
+      const titleText = data.title;
+      const imagesList = data.images || [];
+      const brandName = data.brand || "Unknown Brand";
+      const catName = data.category || "General";
+      const priceStr = data.price || "N/A";
+      const ratingVal = data.rating || 0;
+      const reviewsCount = data.reviews || 0;
 
       // 1. Programmatic Title Analysis
       const titleScore = Math.min(100, Math.max(30, Math.round((titleText.length / 150) * 100)));

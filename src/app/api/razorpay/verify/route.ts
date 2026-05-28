@@ -7,8 +7,11 @@ export async function POST(req: Request) {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan } = await req.json();
 
     const sign = razorpay_order_id + "|" + razorpay_payment_id;
+    if (!process.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET === "dummy_secret") {
+      throw new Error("SERVER MISCONFIGURATION: Razorpay Key Secret is missing. Cannot verify payments.");
+    }
     const expectedSign = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || "dummy_secret")
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(sign.toString())
       .digest("hex");
 

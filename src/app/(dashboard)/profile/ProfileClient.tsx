@@ -185,6 +185,13 @@ export default function ProfileClient({ initialPlan, initialEmail }: { initialPl
   const [verifyingInt, setVerifyingInt] = useState<string | null>(null);
 
   const handleConnect = async (intId: string, fields: Record<string, string>) => {
+    // 1. Strict Frontend Validation
+    const requiredFields = Object.values(fields);
+    if (requiredFields.length === 0 || requiredFields.some(val => !val || val.trim() === "")) {
+      showToast(`Please fill in all required credentials for ${INTEGRATIONS.find(i => i.id === intId)?.name} before connecting.`, "error");
+      return;
+    }
+
     setVerifyingInt(intId);
     
     // Call the respective live API proxy for validation
@@ -195,8 +202,10 @@ export default function ProfileClient({ initialPlan, initialEmail }: { initialPl
         body: JSON.stringify({ action: "verify", credentials: fields })
       });
       
-      if (!res.ok) {
-        showToast(`Verification failed: Invalid credentials for ${INTEGRATIONS.find(i => i.id === intId)?.name}`, "error");
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || data.error) {
+        showToast(`Verification failed: ${data.error || "Invalid credentials provided."}`, "error");
         setVerifyingInt(null);
         return;
       }

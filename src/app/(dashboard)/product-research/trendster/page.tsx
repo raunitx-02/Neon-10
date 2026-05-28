@@ -25,20 +25,7 @@ const DEFAULT_INSIGHTS: Insight[] = [
   { label: "Price Volatility", value: "Low (±₹140)", color: "var(--warning)", icon: "💰" },
 ];
 
-const MOCK_HISTORICAL_DATA: TrendPoint[] = [
-  { date: "Jun 25", bsr: 8200, price: 2499 },
-  { date: "Jul 25", bsr: 6100, price: 2399 },
-  { date: "Aug 25", bsr: 4800, price: 2499 },
-  { date: "Sep 25", bsr: 9200, price: 2199 },
-  { date: "Oct 25", bsr: 5100, price: 2499 },
-  { date: "Nov 25", bsr: 1200, price: 1999 },
-  { date: "Dec 25", bsr: 800, price: 1899 },
-  { date: "Jan 26", bsr: 7400, price: 2499 },
-  { date: "Feb 26", bsr: 9800, price: 2599 },
-  { date: "Mar 26", bsr: 8100, price: 2399 },
-  { date: "Apr 26", bsr: 6200, price: 2499 },
-  { date: "May 26", bsr: 3400, price: 2499 },
-];
+
 
 export default function TrendsterPage() {
   const [asin, setAsin] = useState("B08XYZ1234");
@@ -56,10 +43,14 @@ export default function TrendsterPage() {
     try {
       const res = await fetch(`/api/amazon/keepa?asin=${searchAsin.toUpperCase().trim()}`);
       
-      // If Keepa API is unavailable or quota exceeded, fall back gracefully
       if (!res.ok) {
-        setErrorMsg("Keepa API unavailable — showing simulation data.");
-        generateSeedData(searchAsin);
+        let msg = "Keepa API unavailable.";
+        try {
+          const errData = await res.json();
+          if (errData.error) msg = `Keepa Error: ${errData.error}`;
+        } catch(e) {}
+        setErrorMsg(msg);
+        setChartData([]);
         setSearched(true);
         setLoading(false);
         return;
@@ -67,10 +58,9 @@ export default function TrendsterPage() {
 
       const data = await res.json();
       
-      // If Keepa returned an explicit error, fall back silently
       if (data.error) {
-        setErrorMsg(`Keepa: ${data.error} — showing simulation data.`);
-        generateSeedData(searchAsin);
+        setErrorMsg(`Keepa: ${data.error}`);
+        setChartData([]);
         setSearched(true);
         setLoading(false);
         return;
@@ -138,12 +128,12 @@ export default function TrendsterPage() {
             { label: "Price Volatility", value: `₹${(maxPrice - minPrice).toLocaleString()}`, color: "var(--warning)", icon: "💰" },
           ]);
         } else {
-          // Keepa returned data but CSV array is empty. Use seed-based values
-          generateSeedData(searchAsin);
+          setErrorMsg("Keepa returned no historical data points.");
+          setChartData([]);
         }
       } else {
-        // Fallback to seed based values if mock mode
-        generateSeedData(searchAsin);
+        setErrorMsg("No historical data found for this ASIN on Amazon India.");
+        setChartData([]);
       }
 
       setSearched(true);
@@ -151,49 +141,14 @@ export default function TrendsterPage() {
     } catch (e: any) {
       console.error(e);
       setErrorMsg(e.message || "Failed to process seasonal trends.");
-      generateSeedData(searchAsin);
+      setChartData([]);
       setSearched(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const generateSeedData = (searchAsin: string) => {
-    // Generate deterministic values based on ASIN character codes
-    const seed = searchAsin.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const priceBaseline = 1500 + (seed % 2000);
-    
-    const seededPoints = MOCK_HISTORICAL_DATA.map((pt, index) => {
-      const bsrDev = Math.sin((index + seed) * 0.8) * 4000;
-      const priceDev = Math.cos((index + seed) * 0.6) * 300;
-      return {
-        date: pt.date,
-        bsr: Math.round(Math.max(100, Math.min(15000, pt.bsr + bsrDev))),
-        price: Math.round(priceBaseline + priceDev)
-      };
-    });
 
-    setChartData(seededPoints);
-    setIsLive(false);
-
-    // Compute metrics
-    const prices = seededPoints.map(p => p.price);
-    const bsrs = seededPoints.map(p => p.bsr);
-    const maxPrice = Math.max(...prices);
-    const minPrice = Math.min(...prices);
-    const avgBsr = bsrs.reduce((a, b) => a + b, 0) / bsrs.length;
-    
-    const sorted = [...seededPoints].sort((a, b) => a.bsr - b.bsr);
-    const peakSalesMonth = sorted[0]?.date || "Nov";
-    const offSalesMonth = sorted[sorted.length - 1]?.date || "Feb";
-
-    setInsights([
-      { label: "Peak Sales Period", value: peakSalesMonth, color: "var(--success)", icon: "🎯" },
-      { label: "Off-Season Spike", value: offSalesMonth, color: "var(--danger)", icon: "📉" },
-      { label: "Avg Historical BSR", value: `#${Math.round(avgBsr).toLocaleString()}`, color: "var(--blue)", icon: "📊" },
-      { label: "Price Volatility", value: `₹${(maxPrice - minPrice).toLocaleString()}`, color: "var(--warning)", icon: "💰" },
-    ]);
-  };
 
   useEffect(() => {
     fetchTrends("B08XYZ1234");
@@ -247,7 +202,7 @@ export default function TrendsterPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
           {errorMsg ? (
             <div style={{ color: "var(--danger)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
-              <AlertTriangle size={14} /> {errorMsg} (Loaded simulation fallback)
+              <AlertTriangle size={14} /> {errorMsg}
             </div>
           ) : (
             <div style={{ color: "var(--text-muted)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>

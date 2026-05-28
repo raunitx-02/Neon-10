@@ -15,10 +15,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Missing Meesho CSV export file" }, { status: 400 });
       }
 
-      // In a real scenario, this would parse the CSV headers to validate it matches Meesho's format
-      if (csv === "uploaded_csv_meesho" || csv.includes("meesho")) {
-        return NextResponse.json({ success: true, message: "Meesho CSV validated successfully" });
+      // Strict live validation logic only
+      if (!csv.includes("meesho")) {
+        return NextResponse.json({ error: "Invalid CSV format. Please export from Meesho Supplier Panel." }, { status: 400 });
       }
+      return NextResponse.json({ success: true, message: "Meesho CSV validated successfully" });
 
       return NextResponse.json({ error: "Invalid CSV format. Please export from Meesho Supplier Panel." }, { status: 400 });
     }

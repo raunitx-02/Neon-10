@@ -9,18 +9,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "ASIN is required" }, { status: 400 });
   }
 
-  // Fallback to mock data if no API Key is provided
   if (!apiKey || apiKey === "YOUR_API_KEY") {
-    console.warn("Rainforest API Key missing. Returning mock data.");
-    return NextResponse.json({
-      isMock: true,
-      asin: asin.toUpperCase(),
-      name: "Premium Wireless Earbuds Pro (Mock)",
-      bsr: Math.floor(Math.random() * 1000) + 1,
-      category: "Electronics > Headphones",
-      velocity: "+12.5%",
-      price: "₹12,499"
-    });
+    return NextResponse.json({ error: "SERVER MISCONFIGURATION: RAINFOREST_API_KEY is missing. Cannot fetch live BSR data." }, { status: 500 });
   }
 
   try {

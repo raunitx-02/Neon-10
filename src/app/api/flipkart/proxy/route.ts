@@ -14,9 +14,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Missing required Flipkart credentials" }, { status: 400 });
       }
 
-      if (apiKey.startsWith("demo_") || apiKey === "fk_api_xxxxxxxxxxxxxxxxxxxxxxxx") {
-        return NextResponse.json({ success: true, message: "Demo Flipkart API verified" });
-      }
+      // No demo bypass - strict live checking only
 
       // Live verification via Flipkart Seller API sandbox or auth endpoint
       // Flipkart usually requires OAuth bearer generation using AppID and AppSecret. 

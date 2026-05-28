@@ -11,20 +11,7 @@ export async function GET(request: Request) {
   }
 
   if (!apiKey || apiKey === "YOUR_KEEPA_KEY") {
-    // Return informative mock data if key is missing
-    return NextResponse.json({
-      isMock: true,
-      message: "Please configure KEEPA_API_KEY in environment variables",
-      product: {
-        title: "Sample Product (Configure Keepa Key)",
-        asin: asin,
-        imagesCSV: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
-        stats: {
-          current: [249900, 199900, -1], // Keepa price format (multiplied by 100)
-          avg: [220000, 180000]
-        }
-      }
-    });
+    return NextResponse.json({ error: "SERVER MISCONFIGURATION: KEEPA_API_KEY is missing. Cannot fetch live data." }, { status: 500 });
   }
 
   try {
