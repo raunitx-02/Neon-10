@@ -181,16 +181,7 @@ export default function Sidebar({ plan = "Starter", user = "", role = "user" }: 
       }}>
         {!collapsed && (
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{
-              width: 36, height: 36,
-              background: "var(--accent)",
-              borderRadius: 10,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-              boxShadow: "0 4px 12px var(--accent-glow)",
-            }}>
-              <span style={{ color: "white", fontWeight: 900, fontSize: 16 }}>N</span>
-            </div>
+            <img src="/logo.png" alt="RetailStacker Logo" style={{ width: 36, height: 36, flexShrink: 0 }} />
             <div>
               <div style={{ fontWeight: 800, fontSize: 16, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>RetailStacker</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>Seller Platform</div>
@@ -198,15 +189,7 @@ export default function Sidebar({ plan = "Starter", user = "", role = "user" }: 
           </div>
         )}
         {collapsed && (
-          <div style={{
-            width: 36, height: 36,
-            background: "var(--accent)",
-            borderRadius: 10,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 4px 12px var(--accent-glow)",
-          }}>
-            <span style={{ color: "white", fontWeight: 900, fontSize: 16 }}>N</span>
-          </div>
+            <img src="/logo.png" alt="RetailStacker Logo" style={{ width: 36, height: 36 }} />
         )}
         {!collapsed && (
           <button

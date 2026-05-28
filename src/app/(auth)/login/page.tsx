@@ -84,9 +84,7 @@ function AuthForm() {
 
       <div className="glass-card" style={{ width: "100%", maxWidth: isLogin ? 440 : 500, padding: 48, zIndex: 10 }}>
         <Link href="/" style={{ textDecoration: "none", display: "flex", justifyContent: "center", marginBottom: 32 }}>
-          <div style={{ width: 48, height: 48, background: "var(--accent)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 24px var(--accent-glow)" }}>
-            <span style={{ color: "white", fontWeight: 900, fontSize: 24 }}>N</span>
-          </div>
+          <img src="/logo.png" alt="RetailStacker Logo" style={{ width: 48, height: 48 }} />
         </Link>
         <h1 style={{ fontSize: 28, fontWeight: 900, marginBottom: 8, textAlign: "center" }}>
           {isLogin ? "Welcome Back" : (otpSent ? "Verify Email" : "Create Account")}

@@ -44,9 +44,7 @@ export default function LandingPage() {
           {/* Left: Logo */}
           <div style={{ display: "flex", alignItems: "center" }}>
             <Link href="/" style={{ textDecoration: "none", color: "inherit", display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 42, height: 42, background: "var(--accent)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px var(--accent-glow)" }}>
-                <span style={{ color: "white", fontWeight: 900, fontSize: 20 }}>N</span>
-              </div>
+              <img src="/logo.png" alt="RetailStacker Logo" style={{ width: 42, height: 42 }} />
               <div style={{ fontWeight: 900, fontSize: 22, letterSpacing: "-0.03em" }}>RetailStacker</div>
             </Link>
           </div>
@@ -122,7 +120,7 @@ export default function LandingPage() {
             {/* Topbar */}
             <div style={{ height: 60, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", padding: "0 24px", justifyContent: "space-between", background: "var(--bg-secondary)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <div style={{ width: 28, height: 28, background: "var(--accent)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 900, fontSize: 14 }}>N</div>
+                <img src="/logo.png" alt="RetailStacker Logo" style={{ width: 28, height: 28 }} />
                 <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>RetailStacker Workspace</div>
               </div>
               <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
@@ -480,9 +478,7 @@ export default function LandingPage() {
         <div style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 60, marginBottom: 60 }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-              <div style={{ width: 36, height: 36, background: "var(--accent)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ color: "white", fontWeight: 900, fontSize: 18 }}>N</span>
-              </div>
+              <img src="/logo.png" alt="RetailStacker Logo" style={{ width: 36, height: 36 }} />
               <span style={{ fontWeight: 900, fontSize: 20 }}>RetailStacker</span>
             </div>
             <p style={{ color: "var(--text-muted)", fontSize: 15, lineHeight: 1.6 }}>
