@@ -111,6 +111,9 @@ interface ScanData {
   accountHealth: AccountHealth;
   competitorGaps: string[];
   growthPredictions: GrowthPrediction[];
+  currentPage: number;
+  totalPages: number;
+  totalProducts: number;
   scannedAt: string;
 }
 
@@ -201,17 +204,19 @@ export default function ScannerPage() {
     return () => clearInterval(timer);
   }, [loading]);
 
-  const runScan = useCallback(async () => {
+  const runScan = useCallback(async (page: number = 1) => {
     if (!input.trim()) return;
     setLoading(true);
     setError(null);
-    setData(null);
-    setExpandedRow(null);
+    if (page === 1) {
+      setData(null);
+      setExpandedRow(null);
+    }
     try {
       const res = await fetch("/api/amazon/scanner", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: input.trim() }),
+        body: JSON.stringify({ url: input.trim(), page }),
       });
       const json = await res.json();
       if (json.error) throw new Error(json.error);
@@ -295,7 +300,7 @@ export default function ScannerPage() {
           )}
           <button
             className="btn-accent"
-            onClick={runScan}
+            onClick={() => runScan(1)}
             disabled={loading || !input.trim()}
             style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 160, justifyContent: "center", fontWeight: 700 }}
           >
@@ -944,6 +949,31 @@ export default function ScannerPage() {
                     );
                   })}
                 </div>
+
+                {/* Pagination Controls */}
+                {data.totalPages > 1 && (
+                  <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 16, marginTop: 40 }}>
+                    <button
+                      className="btn-ghost"
+                      disabled={data.currentPage === 1 || loading}
+                      onClick={() => runScan(data.currentPage - 1)}
+                      style={{ padding: "10px 20px", fontSize: 14, fontWeight: 700, opacity: data.currentPage === 1 ? 0.5 : 1 }}
+                    >
+                      Previous
+                    </button>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)", background: "var(--bg-secondary)", padding: "8px 16px", borderRadius: 20 }}>
+                      Page {data.currentPage} of {data.totalPages} <span style={{ color: "var(--text-muted)", marginLeft: 4, fontWeight: 600 }}>({data.totalProducts} ASINs)</span>
+                    </span>
+                    <button
+                      className="btn-accent"
+                      disabled={data.currentPage === data.totalPages || loading}
+                      onClick={() => runScan(data.currentPage + 1)}
+                      style={{ padding: "10px 20px", borderRadius: 8, fontSize: 14, fontWeight: 700, opacity: data.currentPage === data.totalPages ? 0.5 : 1 }}
+                    >
+                      Next Page
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

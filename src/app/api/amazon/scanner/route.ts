@@ -396,6 +396,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const input: string = body.url || body.input || "";
+    const page = Number(body.page) || 1;
+    const limit = Number(body.limit) || 20;
+    const offset = (page - 1) * limit;
 
     if (!input.trim()) {
       return NextResponse.json({ error: "Provide a storefront URL, ASIN, or brand name" }, { status: 400 });
@@ -404,9 +407,11 @@ export async function POST(req: NextRequest) {
     const { sellerId, asins, searchTerm } = extractSellerInfo(input);
     let products: any[] = [];
     let brandName = searchTerm || "Brand Storefront";
+    let totalProducts = 0;
 
     if (asins && asins.length > 0) {
-      products = await fetchKeepaProducts(asins);
+      totalProducts = asins.length;
+      products = await fetchKeepaProducts(asins.slice(offset, offset + limit));
       brandName = "ASIN Audit List";
     } else if (sellerId) {
       try {
@@ -418,7 +423,8 @@ export async function POST(req: NextRequest) {
             brandName = sellerInfo.sellerName;
           }
           if (sellerInfo.asinList && sellerInfo.asinList.length > 0) {
-            const sellerAsins = sellerInfo.asinList.slice(0, 10);
+            totalProducts = sellerInfo.asinList.length;
+            const sellerAsins = sellerInfo.asinList.slice(offset, offset + limit);
             products = await fetchKeepaProducts(sellerAsins);
           }
         }
@@ -430,12 +436,16 @@ export async function POST(req: NextRequest) {
         const brandMatch = input.match(/\/stores\/([^/]+)\//i);
         if (brandMatch) {
           const term = brandMatch[1].replace(/-/g, " ");
-          products = await searchKeepaProducts(term);
+          const searchResults = await searchKeepaProducts(term);
+          totalProducts = searchResults.length;
+          products = searchResults.slice(offset, offset + limit);
           brandName = term;
         }
       }
     } else if (searchTerm) {
-      products = await searchKeepaProducts(searchTerm);
+      const searchResults = await searchKeepaProducts(searchTerm);
+      totalProducts = searchResults.length;
+      products = searchResults.slice(offset, offset + limit);
       brandName = searchTerm;
     }
 
@@ -586,6 +596,9 @@ export async function POST(req: NextRequest) {
       accountHealth,
       competitorGaps,
       growthPredictions,
+      currentPage: page,
+      totalPages: Math.max(1, Math.ceil(totalProducts / limit)),
+      totalProducts,
       scannedAt: new Date().toISOString(),
     });
 
