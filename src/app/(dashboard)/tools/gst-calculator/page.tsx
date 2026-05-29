@@ -271,7 +271,7 @@ export default function GSTCalculatorPage() {
   ];
 
   // ─── Invoice State (Populated with user image sample data) ──────────────────
-  const [sellerName, setSellerName] = useState("NEON 10");
+  const [sellerName, setSellerName] = useState("RetailStacker");
   const [sellerGSTIN, setSellerGSTIN] = useState("24AJHPC5439P1ZX");
   const [sellerPAN, setSellerPAN] = useState("AJHPC5439P");
   const [sellerCIN, setSellerCIN] = useState("GJ-AD2-216477");
@@ -281,8 +281,8 @@ export default function GSTCalculatorPage() {
   const [sellerAddress, setSellerAddress] = useState("PLOT NO 92-94, ARIHANT INDUSTRIAL ESTATE BLOCK NO 55, NEW BLOCK NO. 143, MOTA BORASARA, MAGROL, DIST-SURAT, SURAT 394110");
   const [sellerState, setSellerState] = useState("Gujarat");
   const [logoType, setLogoType] = useState<"badge" | "image">("badge");
-  const [logoBadgeTextTop, setLogoBadgeTextTop] = useState("NEON");
-  const [logoBadgeTextBottom, setLogoBadgeTextBottom] = useState("10");
+  const [logoBadgeTextTop, setLogoBadgeTextTop] = useState("RETAIL");
+  const [logoBadgeTextBottom, setLogoBadgeTextBottom] = useState("STACKER");
   const [logoBadgeColor, setLogoBadgeColor] = useState("#058b8c");
   const [logoBadgeBorderColor, setLogoBadgeBorderColor] = useState("#005a5b");
   const [logoImageSrc, setLogoImageSrc] = useState("");
