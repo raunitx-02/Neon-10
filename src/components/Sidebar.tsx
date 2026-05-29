@@ -21,8 +21,8 @@ const PLAN_ACCESS: Record<string, string[]> = {
     "/tools/gst-calculator",
     "/tools/logistics-estimator",
     "/tools/url-builder",
-    "/tools/qr-generator",
     "/tools/meesho-optimizer",
+    "/tools/bulk-analyzer",
     "/publish",
   ],
   Growth: [
@@ -38,8 +38,8 @@ const PLAN_ACCESS: Record<string, string[]> = {
     "/tools/qr-generator",
     "/tools/scanner",
     "/tools/copilot",
-    "/tools/meesho-optimizer",
     "/tools/shopify-manager",
+    "/tools/bulk-analyzer",
     "/publish",
   ],
   Diamond: [] // Diamond has everything
@@ -120,10 +120,10 @@ const nav = [
       { label: "AI Seller Copilot", href: "/tools/copilot", icon: Sparkles },
       { label: "Shopify Store Manager", href: "/tools/shopify-manager", icon: ShoppingBag },
       { label: "Meesho Shipping Optimizer", href: "/tools/meesho-optimizer", icon: Package },
-      { label: "GST Invoice & Calculator", href: "/tools/gst-calculator", icon: IndianRupee },
       { label: "Logistics Estimator", href: "/tools/logistics-estimator", icon: Truck },
       { label: "URL Builder", href: "/tools/url-builder", icon: Link2 },
       { label: "QR Generator", href: "/tools/qr-generator", icon: QrCode },
+      { label: "Bulk ASIN Analyzer", href: "/tools/bulk-analyzer", icon: FileText },
     ],
   },
 ];
