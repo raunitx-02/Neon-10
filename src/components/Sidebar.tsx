@@ -8,7 +8,7 @@ import {
   Wrench, ChevronRight, ChevronLeft, Bell, Package, TrendingUp,
   ShieldCheck, RefreshCcw, Mail, Boxes, Zap, Cpu, QrCode, Link2,
   Sparkles, Target, BookOpen, FlaskConical, IndianRupee, Truck, ScanLine, Lock, UserCircle,
-  Upload, Store, Image as ImageIcon, ShoppingBag
+  Upload, Store, Image as ImageIcon, ShoppingBag, Calculator
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -119,6 +119,7 @@ const nav = [
       { label: "AI Seller Scanner", href: "/tools/scanner", icon: ScanLine },
       { label: "AI Seller Copilot", href: "/tools/copilot", icon: Sparkles },
       { label: "Shopify Store Manager", href: "/tools/shopify-manager", icon: ShoppingBag },
+      { label: "GST Invoice Builder", href: "/tools/gst-calculator", icon: Calculator },
       { label: "Meesho Shipping Optimizer", href: "/tools/meesho-optimizer", icon: Package },
       { label: "Logistics Estimator", href: "/tools/logistics-estimator", icon: Truck },
       { label: "URL Builder", href: "/tools/url-builder", icon: Link2 },
