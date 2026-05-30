@@ -31,8 +31,15 @@ export default function PublicNavbar() {
       {/* Logo */}
       <Link href="/" style={{ textDecoration: "none", color: "inherit", display: "flex", alignItems: "center", gap: 10 }}>
         <img src="/logo.png" alt="RetailStacker" style={{ width: 36, height: 36 }} />
-        <span style={{ fontWeight: 900, fontSize: 20, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
-          Retail<span style={{ color: "#2563EB" }}>Stacker</span>
+        <span style={{ fontWeight: 900, fontSize: 20, letterSpacing: "-0.02em", display: "flex", alignItems: "center" }}>
+          <span style={{ 
+            background: "linear-gradient(135deg, #0C1E36 65%, #00B4D8 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            display: "inline-block"
+          }}>R</span>
+          <span style={{ color: "#0C1E36" }}>etail</span>
+          <span style={{ color: "#1A56DB" }}>Stacker</span>
         </span>
       </Link>
 

@@ -45,8 +45,15 @@ export default function LandingPage() {
           <div style={{ display: "flex", alignItems: "center" }}>
             <Link href="/" style={{ textDecoration: "none", color: "inherit", display: "flex", alignItems: "center", gap: 12 }}>
               <img src="/logo.png" alt="RetailStacker Logo" style={{ width: 42, height: 42 }} />
-              <div style={{ fontWeight: 900, fontSize: 22, letterSpacing: "-0.03em", color: "var(--text-primary)" }}>
-                Retail<span style={{ color: "#2563EB" }}>Stacker</span>
+              <div style={{ fontWeight: 900, fontSize: 22, letterSpacing: "-0.03em", display: "flex", alignItems: "center" }}>
+                <span style={{ 
+                  background: "linear-gradient(135deg, #0C1E36 65%, #00B4D8 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  display: "inline-block"
+                }}>R</span>
+                <span style={{ color: "#0C1E36" }}>etail</span>
+                <span style={{ color: "#1A56DB" }}>Stacker</span>
               </div>
             </Link>
           </div>
@@ -481,8 +488,15 @@ export default function LandingPage() {
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
               <img src="/logo.png" alt="RetailStacker Logo" style={{ width: 36, height: 36 }} />
-              <span style={{ fontWeight: 900, fontSize: 20, color: "var(--text-primary)" }}>
-                Retail<span style={{ color: "#2563EB" }}>Stacker</span>
+              <span style={{ fontWeight: 900, fontSize: 20, display: "flex", alignItems: "center" }}>
+                <span style={{ 
+                  background: "linear-gradient(135deg, #0C1E36 65%, #00B4D8 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  display: "inline-block"
+                }}>R</span>
+                <span style={{ color: "#0C1E36" }}>etail</span>
+                <span style={{ color: "#1A56DB" }}>Stacker</span>
               </span>
             </div>
             <p style={{ color: "var(--text-muted)", fontSize: 15, lineHeight: 1.6 }}>

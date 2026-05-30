@@ -217,8 +217,15 @@ export default function Sidebar({ plan = "Starter", user = "", role = "user" }: 
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <img src="/logo.png" alt="RetailStacker Logo" style={{ width: 36, height: 36, flexShrink: 0 }} />
             <div>
-              <div style={{ fontWeight: 800, fontSize: 16, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
-                Retail<span style={{ color: "#2563EB" }}>Stacker</span>
+              <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: "-0.02em", display: "flex", alignItems: "center" }}>
+                <span style={{ 
+                  background: "linear-gradient(135deg, #0C1E36 65%, #00B4D8 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  display: "inline-block"
+                }}>R</span>
+                <span style={{ color: "#0C1E36" }}>etail</span>
+                <span style={{ color: "#1A56DB" }}>Stacker</span>
               </div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>Seller Platform</div>
             </div>
