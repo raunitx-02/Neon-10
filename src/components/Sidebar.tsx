@@ -109,6 +109,7 @@ const nav = [
     icon: BarChart3,
     children: [
       { label: "Keyword Tracker", href: "/analytics/keyword-tracker", icon: TrendingUp },
+      { label: "Bulk ASIN Analyzer", href: "/tools/bulk-analyzer", icon: FileText, highlight: true },
       { label: "Market Tracker", href: "/analytics/market-tracker", icon: BarChart3 },
       { label: "Ads (Adtomic)", href: "/analytics/ads", icon: Zap },
     ],
@@ -125,7 +126,6 @@ const nav = [
       { label: "Logistics Estimator", href: "/tools/logistics-estimator", icon: Truck },
       { label: "URL Builder", href: "/tools/url-builder", icon: Link2 },
       { label: "QR Generator", href: "/tools/qr-generator", icon: QrCode },
-      { label: "Bulk ASIN Analyzer", href: "/tools/bulk-analyzer", icon: FileText },
     ],
   },
 ];
@@ -354,9 +354,28 @@ export default function Sidebar({ plan = "Starter", user = "", role = "user" }: 
                           onMouseEnter={e => { if (!isActive(child.href) && access) { (e.currentTarget as HTMLElement).style.background = "var(--bg-secondary)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}}
                           onMouseLeave={e => { if (!isActive(child.href) && access) { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}}
                         >
-                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <child.icon size={14} style={{ flexShrink: 0 }} />
-                            {child.label}
+                          <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
+                            <child.icon size={14} style={{ flexShrink: 0, color: (child as any).highlight ? "var(--warning)" : "inherit" }} />
+                            <span style={{ fontWeight: (child as any).highlight ? 700 : "inherit", color: (child as any).highlight ? "var(--accent)" : "inherit" }}>
+                              {child.label}
+                            </span>
+                            {(child as any).highlight && (
+                              <span style={{ 
+                                marginLeft: "auto", 
+                                background: "linear-gradient(135deg, #ff8c00, #ff007f)", 
+                                color: "white", 
+                                fontSize: 9, 
+                                fontWeight: 800, 
+                                padding: "2px 6px", 
+                                borderRadius: 6, 
+                                textTransform: "uppercase", 
+                                letterSpacing: "0.05em",
+                                boxShadow: "0 0 8px rgba(255, 0, 127, 0.5)",
+                                flexShrink: 0
+                              }}>
+                                HOT
+                              </span>
+                            )}
                           </div>
                           {!access && <Lock size={12} color="var(--text-muted)" />}
                         </div>
