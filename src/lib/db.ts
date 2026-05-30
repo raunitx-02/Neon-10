@@ -123,8 +123,8 @@ export const deleteUser = (email: string) => {
 
 export const getAllUsers = () => {
   const db = getDB();
-  // Don't return the reseller account in the general users list
-  return db.users.filter((u: any) => u.role !== "reseller");
+  // Don't return the reseller or admin accounts in the general users list
+  return db.users.filter((u: any) => u.role !== "reseller" && u.role !== "admin");
 };
 
 export const setOtp = (email: string, otp: string) => {

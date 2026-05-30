@@ -46,10 +46,7 @@ export async function GET() {
         freeCount++;
       }
     });
-
-    // Add some simulated historical purchase data to make it look full and professional
-    const mockHistoricalEarnings = 148500; // Simulated past sales
-    const grandTotalEarnings = totalEarnings + mockHistoricalEarnings;
+    const grandTotalEarnings = totalEarnings;
 
     return NextResponse.json({
       success: true,

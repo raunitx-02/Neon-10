@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -149,8 +149,40 @@ export default function Sidebar({ plan = "Starter", user = "", role = "user" }: 
     );
   };
 
+  const [plans, setPlans] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/admin/plans")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.plans) {
+          setPlans(data.plans);
+        }
+      })
+      .catch(e => console.error("Error loading plans:", e));
+  }, []);
+
   const isActive = (href: string) => pathname === href;
-  const hasAccess = (href: string) => plan === "Diamond" || (PLAN_ACCESS[plan] && PLAN_ACCESS[plan].includes(href));
+  const hasAccess = (href: string, label: string) => {
+    if (role === "admin") return true;
+    const activePlan = plans.find(p => p.name === plan);
+    if (!activePlan) {
+      return plan === "Diamond" || (PLAN_ACCESS[plan] && PLAN_ACCESS[plan].includes(href));
+    }
+    if (activePlan.features.includes(label)) return true;
+    if (activePlan.features.includes("Everything in Starter")) {
+      const starterPlan = plans.find(p => p.name === "Starter");
+      if (starterPlan && starterPlan.features.includes(label)) return true;
+    }
+    if (activePlan.features.includes("Everything in Growth")) {
+      const growthPlan = plans.find(p => p.name === "Growth");
+      if (growthPlan && growthPlan.features.includes(label)) return true;
+      const starterPlan = plans.find(p => p.name === "Starter");
+      if (starterPlan && starterPlan.features.includes(label)) return true;
+    }
+    if (["/dashboard", "/profile"].includes(href)) return true;
+    return false;
+  };
 
   return (
     <aside
@@ -228,7 +260,7 @@ export default function Sidebar({ plan = "Starter", user = "", role = "user" }: 
       <nav style={{ flex: 1, overflowY: "auto", overflowX: "hidden", padding: "12px 10px" }}>
         {nav.map((item) => {
           if (!item.children) {
-            const access = hasAccess(item.href!);
+            const access = hasAccess(item.href!, item.label);
             return (
               <div key={item.href} title={!access ? `Upgrade to unlock` : ""}>
                 <Link href={access ? item.href! : `/dashboard?error=upgrade_required`} style={{ textDecoration: "none", pointerEvents: access ? "auto" : "none", opacity: access ? 1 : 0.6 }}>
@@ -300,7 +332,7 @@ export default function Sidebar({ plan = "Starter", user = "", role = "user" }: 
               {!collapsed && groupOpen && (
                 <div style={{ paddingLeft: 14, marginTop: 2 }}>
                   {item.children.map((child) => {
-                    const access = hasAccess(child.href);
+                    const access = hasAccess(child.href, child.label);
                     return (
                     <div key={child.href} title={!access ? `Upgrade to unlock` : ""}>
                       <Link href={access ? child.href : `/dashboard?error=upgrade_required`} style={{ textDecoration: "none", pointerEvents: access ? "auto" : "none", opacity: access ? 1 : 0.6 }}>
