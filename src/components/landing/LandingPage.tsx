@@ -91,8 +91,16 @@ export default function LandingPage() {
           <br />
           E-commerce with
           <br />
-          <span style={{ color: "var(--accent)" }}>
-            RetailStacker Intelligence
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "0px", flexWrap: "wrap", justifyContent: "center" }}>
+            <span style={{ 
+              background: "linear-gradient(135deg, #0C1E36 65%, #00B4D8 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              display: "inline-block"
+            }}>R</span>
+            <span style={{ color: "#0C1E36" }}>etail</span>
+            <span style={{ color: "#1A56DB" }}>Stacker</span>
+            <span style={{ color: "var(--accent)", marginLeft: "16px" }}>Intelligence</span>
           </span>
         </h1>
         <p style={{ fontSize: "clamp(18px, 3vw, 24px)", color: "var(--text-muted)", maxWidth: 800, margin: "0 auto 48px", lineHeight: 1.5 }}>

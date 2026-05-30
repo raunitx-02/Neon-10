@@ -1,8 +1,8 @@
 /**
  * AI Seller Health Scanner API
  * POST /api/amazon/scanner
- * Accepts Amazon seller storefront URL or ASIN list
- * Returns AI-powered health analysis, competitor gaps, listing SEO issues, P&L stats
+ * Accepts Amazon seller storefront URL, brand name, or ASIN list
+ * Supports action: "initialize" (to fetch full ASIN list) and action: "batch" (to process ASIN segments)
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -22,15 +22,44 @@ import {
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// ─── Extract seller ID or ASINs from storefront URL ──────────────────────────────────
+// ─── Extract seller ID, brand, or ASINs from user input ─────────────────────────────
 function extractSellerInfo(input: string): { sellerId?: string; asins?: string[]; searchTerm?: string } {
+  // Check for me=... or seller=...
   const sellerMatch = input.match(/[?&]me=([A-Z0-9]+)/i) || input.match(/seller=([A-Z0-9]+)/i);
   if (sellerMatch) return { sellerId: sellerMatch[1] };
 
+  // Check if it's a comma-separated list of ASINs
   const asinMatches = input.match(/[A-Z0-9]{10}/g);
-  if (asinMatches && asinMatches.length > 0) return { asins: asinMatches.slice(0, 10) };
+  if (asinMatches && asinMatches.length > 0 && (input.includes(",") || asinMatches.length > 2)) {
+    return { asins: Array.from(new Set(asinMatches)) };
+  }
+
+  // Check if standard single ASIN
+  if (asinMatches && asinMatches.length === 1 && input.trim().length === 10) {
+    return { asins: [asinMatches[0]] };
+  }
 
   return { searchTerm: input.trim() };
+}
+
+// ─── Keyword Extractor & Density Builder ───────────────────────────────────────────
+function extractKeywords(title: string, features: string[] = []): string[] {
+  const stopWords = new Set(["a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "aren't", "as", "at", "be", "because", "been", "before", "being", "below", "between", "both", "but", "by", "can't", "cannot", "could", "couldn't", "did", "didn't", "do", "does", "doesn't", "doing", "don't", "down", "during", "each", "few", "for", "from", "further", "had", "hadn't", "has", "hasn't", "have", "haven't", "having", "he", "he'd", "he'll", "he's", "her", "here", "here's", "hers", "herself", "him", "himself", "his", "how", "how's", "i", "i'd", "i'll", "i'm", "i've", "if", "in", "into", "is", "isn't", "it", "it's", "its", "itself", "let's", "me", "more", "most", "mustn't", "my", "myself", "no", "nor", "not", "of", "off", "on", "once", "only", "or", "other", "ought", "our", "ours", "ourselves", "out", "over", "own", "same", "shan't", "she", "she'd", "she'll", "she's", "should", "shouldn't", "so", "some", "such", "than", "that", "that's", "the", "their", "theirs", "them", "themselves", "then", "there", "there's", "these", "they", "they'd", "they'll", "they're", "they've", "this", "those", "through", "to", "too", "under", "until", "up", "very", "was", "wasn't", "we", "we'd", "we'll", "we're", "we've", "were", "weren't", "what", "what's", "when", "when's", "where", "where's", "which", "while", "who", "who's", "whom", "why", "why's", "with", "won't", "would", "wouldn't", "you", "you'd", "you'll", "you're", "you've", "your", "yours", "yourself", "yourselves", "pack", "with", "for", "set", "pcs", "size", "color", "black", "white", "best", "high", "good"]);
+  
+  const text = [title, ...features].join(" ").toLowerCase().replace(/[^\w\s-]/g, " ");
+  const words = text.split(/\s+/);
+  
+  const counts: Record<string, number> = {};
+  for (const w of words) {
+    if (w.length > 3 && !stopWords.has(w) && isNaN(Number(w))) {
+      counts[w] = (counts[w] || 0) + 1;
+    }
+  }
+  
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(item => item[0]);
 }
 
 // ─── High-Fidelity Stats Extractor & Estimator ────────────────────────────────
@@ -48,17 +77,18 @@ interface ExtractedStats {
   priceAvg90: number;
   priceStability: "Stable" | "Highly Volatile" | "Price War Alert";
   wasEstimated: boolean;
+  keywords: string[];
 }
 
 function getProductStats(p: any): ExtractedStats {
   const bsrRaw = p.stats?.current?.[3] || 0;
   const bsr = bsrRaw > 0 ? bsrRaw : 0;
 
-  // Extract or estimate reviews
+  // Extract reviews
   const rawReviews = p.stats?.current?.[17];
   let reviews = rawReviews !== undefined && rawReviews > 0 ? rawReviews : 0;
 
-  // Extract or estimate rating
+  // Extract rating
   const rawRating = getKeepaRating(p.stats?.current || []);
   let rating = rawRating !== null && rawRating > 0 ? rawRating : 0;
 
@@ -135,6 +165,8 @@ function getProductStats(p: any): ExtractedStats {
     }
   }
 
+  const keywords = extractKeywords(p.title || "", p.features || []);
+
   return {
     bsr,
     reviews,
@@ -149,6 +181,7 @@ function getProductStats(p: any): ExtractedStats {
     priceAvg90,
     priceStability,
     wasEstimated,
+    keywords,
   };
 }
 
@@ -282,325 +315,155 @@ function analyzeListingSEO(product: any, stats: ExtractedStats): {
   };
 }
 
-// ─── Account Health Aggregator ────────────────────────────────────────────────
-function buildAccountHealth(products: any[], statsList: ExtractedStats[]): { score: number; alerts: string[]; positives: string[] } {
-  const alerts: string[] = [];
-  const positives: string[] = [];
-  let score = 100;
-
-  const highBSRCount = statsList.filter(s => s.bsr > 100000).length;
-  if (highBSRCount > 0) {
-    alerts.push(`${highBSRCount} product(s) with BSR > 100,000 — consider repricing or delisting`);
-    score -= highBSRCount * 5;
-  }
-
-  const lowRatedCount = statsList.filter(s => s.rating > 0 && s.rating < 3.5).length;
-  if (lowRatedCount > 0) {
-    alerts.push(`${lowRatedCount} listing(s) rated below 3.5★ — high return risk and suppression risk`);
-    score -= lowRatedCount * 8;
-  }
-
-  const noReviewCount = statsList.filter(s => s.reviews < 5).length;
-  if (noReviewCount > products.length * 0.5) {
-    alerts.push("More than 50% of products have under 5 reviews — review velocity is critical");
-    score -= 15;
-  }
-
-  const noPriceCount = products.filter(p => (getBestPrice(p.stats?.current || []) || 0) === 0).length;
-  if (noPriceCount > 0) {
-    alerts.push(`${noPriceCount} product(s) have no active price — possible listing suppression`);
-    score -= noPriceCount * 10;
-  }
-
-  const volatilePriceCount = statsList.filter(s => s.priceStability !== "Stable").length;
-  if (volatilePriceCount > 0) {
-    alerts.push(`${volatilePriceCount} product(s) showing pricing instability or active price wars`);
-    score -= volatilePriceCount * 3;
-  }
-
-  if (products.length > 0) positives.push(`${products.length} active products found`);
-  const goodBSRCount = statsList.filter(s => s.bsr > 0 && s.bsr < 20000).length;
-  if (goodBSRCount > 0) positives.push(`${goodBSRCount} products with strong BSR (< 20,000)`);
-  const buyBoxAmazon = statsList.filter(s => s.buyBoxOwner === "Amazon").length;
-  if (buyBoxAmazon > 0) {
-    alerts.push(`${buyBoxAmazon} listings compete with Amazon directly in Buy Box`);
-  }
-
-  return { score: Math.max(0, Math.min(100, score)), alerts, positives };
-}
-
-// ─── Growth Predictions ───────────────────────────────────────────────────────
-function buildGrowthPredictions(products: any[], statsList: ExtractedStats[]): { asin: string; title: string; prediction: string; action: string; potential: string; checklist: string[] }[] {
-  return products.slice(0, 5).map((p, idx) => {
-    const stats = statsList[idx];
-    const price = getBestPrice(p.stats?.current || []) || 0;
-    const title = (p.title || "").slice(0, 60);
-
-    const checklist: string[] = [];
-    let prediction = "Stable — optimize margin";
-    let action = "Audit FBA fees + GST slabs for margin expansion";
-    let potential = "+10-15% margin improvements";
-
-    // 1. Image checks
-    if (stats.imgCount < 5) {
-      checklist.push(`Upload at least ${6 - stats.imgCount} more high-resolution infographic & lifestyle images`);
-    } else {
-      checklist.push("Maintain current excellent image gallery standards");
-    }
-
-    // 2. Review and Rating checks
-    if (stats.reviews < 50) {
-      checklist.push("Enroll ASIN in the Amazon Vine Program to acquire verified early reviews");
-    } else if (stats.rating < 4.0) {
-      checklist.push("Perform negative review sentiment analysis to address product quality defects");
-    } else {
-      checklist.push("Launch review acceleration follow-ups for recent orders");
-    }
-
-    // 3. SEO & Visibility
-    if (stats.bsr > 30000 || stats.bsr === 0) {
-      prediction = "Low visibility — SEO needed";
-      action = "Rebuild product title keywords and backend search terms using Frankenstein";
-      potential = "+35% organic ranking improvement";
-      checklist.push("Inject high-volume competitor search term backend keywords");
-    } else if (stats.bsr < 5000 && stats.reviews > 100) {
-      prediction = "Scale with PPC ads";
-      action = "Launch Sponsored Products PPC campaigns targeting top search queries";
-      potential = "+40-60% revenue in 30 days";
-      checklist.push("Aggressively target top 5 competitor listing keyword targets");
-    }
-
-    // 4. Margins & Pricing
-    if (stats.priceStability === "Price War Alert") {
-      checklist.push("Review minimum repricer floor thresholds to prevent further price drop");
-    } else {
-      checklist.push("Optimize PPC ad bids to align with the target contribution margin");
-    }
-
-    if (stats.buyBoxOwner === "Amazon") {
-      checklist.push("Create bundled multipacks to avoid direct Buy Box competition with Amazon");
-    }
-
-    return {
-      asin: p.asin,
-      title,
-      prediction,
-      action,
-      potential,
-      checklist
-    };
-  });
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const input: string = body.url || body.input || "";
-    const page = Number(body.page) || 1;
-    const limit = Number(body.limit) || 20;
-    const offset = (page - 1) * limit;
-
-    if (!input.trim()) {
-      return NextResponse.json({ error: "Provide a storefront URL, ASIN, or brand name" }, { status: 400 });
-    }
-
-    const { sellerId, asins, searchTerm } = extractSellerInfo(input);
-    let products: any[] = [];
-    let brandName = searchTerm || "Brand Storefront";
-    let totalProducts = 0;
-
-    if (asins && asins.length > 0) {
-      totalProducts = asins.length;
-      products = await fetchKeepaProducts(asins.slice(offset, offset + limit));
-      brandName = "ASIN Audit List";
-    } else if (sellerId) {
-      try {
-        // Fetch active storefront ASIN list and merchant profile with storefront=1
-        const sellerData = await keepaFetch("seller", { seller: sellerId, storefront: "1" });
-        if (sellerData && sellerData.sellers && sellerData.sellers[sellerId]) {
-          const sellerInfo = sellerData.sellers[sellerId];
-          if (sellerInfo.sellerName) {
-            brandName = sellerInfo.sellerName;
-          }
-          if (sellerInfo.asinList && sellerInfo.asinList.length > 0) {
-            totalProducts = sellerInfo.asinList.length;
-            const sellerAsins = sellerInfo.asinList.slice(offset, offset + limit);
-            products = await fetchKeepaProducts(sellerAsins);
-          }
-        }
-      } catch (err) {
-        console.error("Keepa live seller storefront lookup failed:", err);
+    const action = body.action || "initialize"; // "initialize" or "batch"
+    
+    if (action === "initialize") {
+      const input: string = body.input || body.url || "";
+      if (!input.trim()) {
+        return NextResponse.json({ error: "Provide a storefront URL, ASIN list, or brand name" }, { status: 400 });
       }
 
-      if (products.length === 0) {
-        const brandMatch = input.match(/\/stores\/([^/]+)\//i);
-        if (brandMatch) {
-          const term = brandMatch[1].replace(/-/g, " ");
+      const { sellerId, asins, searchTerm } = extractSellerInfo(input);
+      let brandName = searchTerm || "Brand Storefront";
+      let allAsins: string[] = [];
+
+      if (asins && asins.length > 0) {
+        allAsins = asins;
+        brandName = "ASIN Audit List";
+      } else if (sellerId) {
+        try {
+          const sellerData = await keepaFetch("seller", { seller: sellerId, storefront: "1" });
+          if (sellerData && sellerData.sellers && sellerData.sellers[sellerId]) {
+            const sellerInfo = sellerData.sellers[sellerId];
+            if (sellerInfo.sellerName) {
+              brandName = sellerInfo.sellerName;
+            }
+            if (sellerInfo.asinList && sellerInfo.asinList.length > 0) {
+              allAsins = sellerInfo.asinList;
+            }
+          }
+        } catch (err) {
+          console.error("Keepa seller storefront initialization failed:", err);
+        }
+
+        // If Keepa lookup failed or returned empty list, try search/brand extraction fallback
+        if (allAsins.length === 0) {
+          const brandMatch = input.match(/\/stores\/([^/]+)\//i);
+          const term = brandMatch ? brandMatch[1].replace(/-/g, " ") : searchTerm || sellerId;
           const searchResults = await searchKeepaProducts(term);
-          totalProducts = searchResults.length;
-          products = searchResults.slice(offset, offset + limit);
+          allAsins = searchResults.map(p => p.asin);
           brandName = term;
         }
+      } else if (searchTerm) {
+        const searchResults = await searchKeepaProducts(searchTerm);
+        allAsins = searchResults.map(p => p.asin);
+        brandName = searchTerm;
       }
-    } else if (searchTerm) {
-      const searchResults = await searchKeepaProducts(searchTerm);
-      totalProducts = searchResults.length;
-      products = searchResults.slice(offset, offset + limit);
-      brandName = searchTerm;
+
+      if (allAsins.length === 0) {
+        return NextResponse.json({ error: "No active products found. Check your search query, seller ID, or ASIN list." }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        brandName,
+        totalProducts: allAsins.length,
+        asins: allAsins,
+      });
     }
 
-    if (products.length === 0) {
-      const displaySubject = sellerId ? `Seller ID: ${sellerId}` : searchTerm || input;
-      return NextResponse.json(
-        { error: `No active products found for "${displaySubject}". The seller may have no public active listings in the Amazon.in marketplace.` },
-        { status: 404 }
-      );
+    if (action === "batch") {
+      const batchAsins: string[] = body.asins || [];
+      if (batchAsins.length === 0) {
+        return NextResponse.json({ error: "No ASINs provided in batch request" }, { status: 400 });
+      }
+
+      // Fetch products in this batch from Keepa
+      const products = await fetchKeepaProducts(batchAsins);
+      const statsList = products.map(p => getProductStats(p));
+
+      const listingAnalyses = products.map((p, idx) => {
+        const stats = statsList[idx];
+        const price = getBestPrice(p.stats?.current || []) || 0;
+        const category = p.categoryTree?.[0]?.name || "";
+
+        // Sales calculations
+        const monthlySold = p.monthlySold && p.monthlySold > 0 ? p.monthlySold : estimateMonthlySales(stats.bsr, category);
+        const monthlyRevenue = monthlySold * price;
+
+        // Indian margin & FBA details
+        const fbaFee = estimateFBAFee(price);
+        const referralFeePercent = (p as any).referralFeePercent && (p as any).referralFeePercent > 0 ? (p as any).referralFeePercent : 10;
+        const referralFee = price * (referralFeePercent / 100);
+        const gstPercent = 18;
+        const gst = price * (gstPercent / 100);
+        const cogs = price * 0.35;
+        const netProfit = Math.max(0, price - cogs - fbaFee - referralFee - gst);
+        const netMargin = price > 0 ? Math.round((netProfit / price) * 100) : 0;
+
+        return {
+          asin: p.asin,
+          title: p.title || "Unknown Product",
+          shortTitle: (p.title || "Unknown Product").slice(0, 80),
+          img: stats.img,
+          brand: p.brand || p.manufacturer || "—",
+          price,
+          formattedPrice: formatINR(price),
+          bsr: stats.bsr,
+          reviews: stats.reviews,
+          rating: stats.rating,
+          monthlySold,
+          monthlyRevenue,
+          formattedMonthlyRevenue: formatINR(monthlyRevenue),
+          fbaFee,
+          formattedFbaFee: formatINR(fbaFee),
+          referralFeePercent,
+          referralFee,
+          formattedReferralFee: formatINR(referralFee),
+          gstPercent,
+          gst,
+          formattedGst: formatINR(gst),
+          cogs,
+          formattedCogs: formatINR(cogs),
+          netProfit,
+          formattedNetProfit: formatINR(netProfit),
+          netMargin,
+          financeAnalysis: netMargin >= 30 
+            ? `Excellent high-margin yield! Every unit sold generates ${formatINR(netProfit)} in pure profit, leaving substantial room for advertising budgets.`
+            : netMargin >= 15 
+            ? `Healthy standard yield. With a net margin of ${netMargin}%, each sale contributes ${formatINR(netProfit)} to operational cash flows.`
+            : `Tight margins detected (${netMargin}%). High Amazon referral fees (${formatINR(referralFee)}) or FBA logistics fees (${formatINR(fbaFee)}) are significantly squeezing profits. Sourcing at lower COGS is recommended.`,
+          buyBoxAnalysis: stats.buyBoxOwner === "Amazon"
+            ? `Amazon retail is actively holding the Buy Box. Direct competition against Amazon retail makes securing Buy Box shares extremely difficult. Recommend bundling offers or creating value packs.`
+            : stats.buyBoxOwner === "Suppressed"
+            ? `Buy Box is suppressed. Active price of ${formatINR(price)} likely exceeds MSRP ceilings. Align pricing closer to the 90-day average of ${formatINR(stats.priceAvg90)}.`
+            : stats.priceStability === "Price War Alert"
+            ? `Active price war! The current price has crashed to ${formatINR(price)}, which is ${Math.round(((stats.priceAvg90 - price) / stats.priceAvg90) * 100)}% below the 90-day average of ${formatINR(stats.priceAvg90)}. Audit repricer rules immediately.`
+            : stats.priceStability === "Highly Volatile"
+            ? `Pricing is showing high volatility. Fluctuating price averages can trigger Buy Box suppression. Standardize pricing policies.`
+            : `Buy Box is stable. The current price of ${formatINR(price)} is fully aligned with the 30-day average of ${formatINR(stats.priceAvg30)}, indicating secure brand control.`,
+          bulletCount: stats.bulletCount,
+          descriptionLength: stats.descriptionLength,
+          buyBoxOwner: stats.buyBoxOwner,
+          priceAvg30: stats.priceAvg30,
+          formattedPriceAvg30: formatINR(stats.priceAvg30),
+          priceAvg90: stats.priceAvg90,
+          formattedPriceAvg90: formatINR(stats.priceAvg90),
+          priceStability: stats.priceStability,
+          opportunity: stats.buyBoxOwner === "Suppressed" ? "Low" : stats.bsr < 15000 ? "High" : stats.bsr < 50000 ? "Medium" : "Low",
+          seo: analyzeListingSEO(p, stats),
+          keywords: stats.keywords,
+        };
+      });
+
+      return NextResponse.json({
+        listings: listingAnalyses,
+      });
     }
 
-    const statsList = products.map(p => getProductStats(p));
-
-    // ─── Financial & Listing Calculations ──────────────────────────────────────
-    let totalMonthlyRevenue = 0;
-    let totalMonthlyUnitsSold = 0;
-    let bsrSum = 0;
-    let bsrCount = 0;
-    let ratingSum = 0;
-    let ratingCount = 0;
-    let totalReviews = 0;
-
-    const listingAnalyses = products.map((p, idx) => {
-      const stats = statsList[idx];
-      const price = getBestPrice(p.stats?.current || []) || 0;
-      const category = p.categoryTree?.[0]?.name || "";
-
-      // Sales calculations
-      const monthlySold = p.monthlySold && p.monthlySold > 0 ? p.monthlySold : estimateMonthlySales(stats.bsr, category);
-      const monthlyRevenue = monthlySold * price;
-
-      // Aggregations
-      totalMonthlyRevenue += monthlyRevenue;
-      totalMonthlyUnitsSold += monthlySold;
-      totalReviews += stats.reviews;
-
-      if (stats.bsr > 0) {
-        bsrSum += stats.bsr;
-        bsrCount++;
-      }
-      if (stats.rating > 0) {
-        ratingSum += stats.rating;
-        ratingCount++;
-      }
-
-      // Indian margin & FBA details
-      const fbaFee = estimateFBAFee(price);
-      const referralFeePercent = p.referralFeePercent && p.referralFeePercent > 0 ? p.referralFeePercent : 10;
-      const referralFee = price * (referralFeePercent / 100);
-      const gstPercent = 18;
-      const gst = price * (gstPercent / 100);
-      const cogs = price * 0.35;
-      const netProfit = Math.max(0, price - cogs - fbaFee - referralFee - gst);
-      const netMargin = price > 0 ? Math.round((netProfit / price) * 100) : 0;
-
-      return {
-        asin: p.asin,
-        title: p.title || "Unknown Product",
-        shortTitle: (p.title || "Unknown Product").slice(0, 80),
-        img: stats.img,
-        brand: p.brand || p.manufacturer || "—",
-        price,
-        formattedPrice: formatINR(price),
-        bsr: stats.bsr,
-        reviews: stats.reviews,
-        rating: stats.rating,
-        monthlySold,
-        monthlyRevenue,
-        formattedMonthlyRevenue: formatINR(monthlyRevenue),
-        fbaFee,
-        formattedFbaFee: formatINR(fbaFee),
-        referralFeePercent,
-        referralFee,
-        formattedReferralFee: formatINR(referralFee),
-        gstPercent,
-        gst,
-        formattedGst: formatINR(gst),
-        cogs,
-        formattedCogs: formatINR(cogs),
-        netProfit,
-        formattedNetProfit: formatINR(netProfit),
-        netMargin,
-        financeAnalysis: netMargin >= 30 
-          ? `Excellent high-margin yield! Every unit sold generates ${formatINR(netProfit)} in pure profit, leaving substantial room for advertising budgets.`
-          : netMargin >= 15 
-          ? `Healthy standard yield. With a net margin of ${netMargin}%, each sale contributes ${formatINR(netProfit)} to operational cash flows.`
-          : `Tight margins detected (${netMargin}%). High Amazon referral fees (${formatINR(referralFee)}) or FBA logistics fees (${formatINR(fbaFee)}) are significantly squeezing profits. Sourcing at lower COGS is recommended.`,
-        buyBoxAnalysis: stats.buyBoxOwner === "Amazon"
-          ? `Amazon retail is actively holding the Buy Box. Direct competition against Amazon retail makes securing Buy Box shares extremely difficult. Recommend bundling offers or creating value packs.`
-          : stats.buyBoxOwner === "Suppressed"
-          ? `Buy Box is suppressed. Active price of ${formatINR(price)} likely exceeds MSRP ceilings. Align pricing closer to the 90-day average of ${formatINR(stats.priceAvg90)}.`
-          : stats.priceStability === "Price War Alert"
-          ? `Active price war! The current price has crashed to ${formatINR(price)}, which is ${Math.round(((stats.priceAvg90 - price) / stats.priceAvg90) * 100)}% below the 90-day average of ${formatINR(stats.priceAvg90)}. Audit repricer rules immediately.`
-          : stats.priceStability === "Highly Volatile"
-          ? `Pricing is showing high volatility. Fluctuating price averages can trigger Buy Box suppression. Standardize pricing policies.`
-          : `Buy Box is stable. The current price of ${formatINR(price)} is fully aligned with the 30-day average of ${formatINR(stats.priceAvg30)}, indicating secure brand control.`,
-        bulletCount: stats.bulletCount,
-        descriptionLength: stats.descriptionLength,
-        buyBoxOwner: stats.buyBoxOwner,
-        priceAvg30: stats.priceAvg30,
-        formattedPriceAvg30: formatINR(stats.priceAvg30),
-        priceAvg90: stats.priceAvg90,
-        formattedPriceAvg90: formatINR(stats.priceAvg90),
-        priceStability: stats.priceStability,
-        opportunity: stats.buyBoxOwner === "Suppressed" ? "Low" : stats.bsr < 15000 ? "High" : stats.bsr < 50000 ? "Medium" : "Low",
-        seo: analyzeListingSEO(p, stats),
-      };
-    });
-
-    const avgBSR = bsrCount > 0 ? Math.round(bsrSum / bsrCount) : 0;
-    const avgRating = ratingCount > 0 ? Number((ratingSum / ratingCount).toFixed(1)) : 0;
-
-    const accountHealth = buildAccountHealth(products, statsList);
-    const growthPredictions = buildGrowthPredictions(products, statsList);
-
-    // ─── Competitor gap summary ──────────────────────────────────────────────
-    const avgReviews = products.length > 0 ? Math.round(totalReviews / products.length) : 0;
-    const competitorGaps = [
-      avgReviews < 300 ? `Average reviews is ${avgReviews} — lower saturated market entry` : `High reviews barrier: avg catalog reviews is ${avgReviews}`,
-      avgBSR > 0 ? `Brand average category rank (BSR): #${avgBSR.toLocaleString("en-IN")}` : "No active category rank history found",
-      `Average listing rating is ${avgRating}★`,
-      statsList.filter(s => s.imgCount < 5).length > 0
-        ? `${statsList.filter(s => s.imgCount < 5).length} listing(s) have weak images — premium gallery expansion possible`
-        : "Image galleries are highly competitive",
-    ];
-
-    // Brand health score
-    const overallScore = Math.round(
-      listingAnalyses.reduce((s, l) => s + l.seo.score, 0) / listingAnalyses.length * 0.4 +
-      accountHealth.score * 0.4 +
-      (avgRating >= 4.0 ? 20 : avgRating >= 3.5 ? 10 : 0)
-    );
-
-    const finalBrandName = brandName || listingAnalyses[0]?.brand || "Storefront Catalog";
-
-    return NextResponse.json({
-      brandName: finalBrandName,
-      overallScore,
-      productsScanned: products.length,
-      searchTerm: searchTerm || sellerId || input,
-      totalRevenue: totalMonthlyRevenue,
-      formattedTotalRevenue: formatINR(totalMonthlyRevenue),
-      totalUnitsSold: totalMonthlyUnitsSold,
-      avgBSR,
-      avgRating,
-      totalReviews,
-      listings: listingAnalyses,
-      accountHealth,
-      competitorGaps,
-      growthPredictions,
-      currentPage: page,
-      totalPages: Math.max(1, Math.ceil(totalProducts / limit)),
-      totalProducts,
-      scannedAt: new Date().toISOString(),
-    });
+    return NextResponse.json({ error: "Unsupported action format" }, { status: 400 });
 
   } catch (err: any) {
     console.error("[Scanner API Error]", err);
