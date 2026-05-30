@@ -86,6 +86,7 @@ const nav = [
     label: "Listing Optimization",
     icon: FileText,
     children: [
+      { label: "Meesho Image Optimizer", href: "/tools/meesho-optimizer", icon: ImageIcon },
       { label: "Listing Builder", href: "/listing/builder", icon: BookOpen },
       { label: "Scribbles", href: "/listing/scribbles", icon: FileText },
       { label: "Index Checker", href: "/listing/index-checker", icon: ShieldCheck },
@@ -116,11 +117,11 @@ const nav = [
     label: "Tools",
     icon: Wrench,
     children: [
+      { label: "Meesho Shipping Optimizer", href: "/tools/meesho-optimizer", icon: Package },
       { label: "AI Seller Scanner", href: "/tools/scanner", icon: ScanLine },
       { label: "AI Seller Copilot", href: "/tools/copilot", icon: Sparkles },
       { label: "Shopify Store Manager", href: "/tools/shopify-manager", icon: ShoppingBag },
       { label: "GST Invoice Builder", href: "/tools/gst-calculator", icon: Calculator },
-      { label: "Meesho Shipping Optimizer", href: "/tools/meesho-optimizer", icon: Package },
       { label: "Logistics Estimator", href: "/tools/logistics-estimator", icon: Truck },
       { label: "URL Builder", href: "/tools/url-builder", icon: Link2 },
       { label: "QR Generator", href: "/tools/qr-generator", icon: QrCode },
@@ -354,6 +355,28 @@ export default function Sidebar({ plan = "Starter", user = "", role = "user" }: 
             }}>
               <ShieldCheck size={20} />
               {!collapsed && <span style={{ fontWeight: 600, fontSize: "14px" }}>Reseller Panel</span>}
+            </div>
+          </Link>
+        </div>
+      )}
+
+      {/* Admin Panel Link */}
+      {role === "admin" && (
+        <div style={{ padding: "0 16px 16px 16px" }}>
+          <Link href="/admin" style={{ textDecoration: "none" }}>
+            <div style={{
+              padding: "10px 12px",
+              borderRadius: "10px",
+              background: isActive("/admin") ? "var(--purple)" : "rgba(147,51,234,0.1)",
+              color: isActive("/admin") ? "white" : "var(--purple)",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              transition: "all 0.15s ease",
+              border: isActive("/admin") ? "1px solid var(--purple)" : "1px solid transparent"
+            }}>
+              <ShieldCheck size={20} />
+              {!collapsed && <span style={{ fontWeight: 600, fontSize: "14px" }}>Admin Panel</span>}
             </div>
           </Link>
         </div>

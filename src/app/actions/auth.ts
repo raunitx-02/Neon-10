@@ -81,7 +81,16 @@ export async function loginAction(email: string, password: string) {
     const cookieStore = await cookies();
     cookieStore.set("retailstacker_user", "admin@admin.com", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
     cookieStore.set("retailstacker_plan", "Diamond", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
-    return { success: true };
+    cookieStore.set("retailstacker_role", "admin", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
+    return { success: true, role: "admin" };
+  }
+
+  if (email === "admin@retailstacker.com" && password === "Admin@0987") {
+    const cookieStore = await cookies();
+    cookieStore.set("retailstacker_user", "admin@retailstacker.com", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
+    cookieStore.set("retailstacker_plan", "Diamond", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
+    cookieStore.set("retailstacker_role", "admin", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
+    return { success: true, role: "admin" };
   }
 
   const user = findUser(email);

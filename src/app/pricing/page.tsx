@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle, ShieldCheck } from "lucide-react";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
@@ -9,19 +9,19 @@ declare global {
   interface Window { Razorpay: any; }
 }
 
-const PLANS = [
+const STATIC_PLANS = [
   {
     name: "Starter", price: 2999, priceStr: "₹2,999", period: "/month",
     color: "var(--text-muted)",
     desc: "Perfect for new sellers starting their Amazon India journey.",
-    features: ["Black Box India (Basic)", "Magnet Keywords (50 searches/mo)", "Listing Optimizer", "GST & Customs Calculator", "Logistics Estimator", "1 Marketplace (Amazon.in)", "Community Support"],
+    features: ["Black Box Product Research", "Magnet Keywords", "Listing Builder", "GST Invoice Builder", "Logistics Estimator", "URL Shortener & Builder", "Community Support"],
     highlight: false,
   },
   {
     name: "Growth", price: 5999, priceStr: "₹5,999", period: "/month",
     color: "var(--accent)",
     desc: "For serious sellers scaling across Indian marketplaces.",
-    features: ["Everything in Starter", "Cerebro Reverse ASIN (Unlimited)", "Xray Live Market Intelligence", "Magnet Keywords (500 searches/mo)", "AI Seller Health Scanner", "Flipkart + Meesho Intelligence", "Keyword Tracker (500 words)", "Priority Email Support"],
+    features: ["Everything in Starter", "Cerebro Reverse ASIN", "Xray Market Intelligence", "Magnet Keywords", "AI Seller Scanner", "Meesho Shipping & Image Optimizer", "Keyword Tracker (500 words)", "Priority Email Support"],
     highlight: true,
   },
   {
@@ -35,7 +35,30 @@ const PLANS = [
 
 export default function PricingPage() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [plans, setPlans] = useState(STATIC_PLANS);
   const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/admin/plans")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.plans) {
+          const formatted = data.plans.map((p: any) => {
+            const original = STATIC_PLANS.find(op => op.name === p.name) || {};
+            return {
+              ...original,
+              name: p.name,
+              price: p.price,
+              priceStr: `₹${p.price.toLocaleString("en-IN")}`,
+              desc: p.desc,
+              features: p.features
+            };
+          });
+          setPlans(formatted);
+        }
+      })
+      .catch(err => console.error("Failed to load plans:", err));
+  }, []);
 
   const handlePayment = async (planName: string, amount: number) => {
     setLoadingPlan(planName);
@@ -91,7 +114,7 @@ export default function PricingPage() {
       {/* Pricing Cards */}
       <section style={{ maxWidth: 1200, margin: "0 auto 120px", padding: "0 24px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 32, alignItems: "stretch" }}>
-          {PLANS.map(plan => (
+          {plans.map(plan => (
             <div key={plan.name} className="glass-card" style={{
               padding: "clamp(24px, 4vw, 40px)", position: "relative", display: "flex", flexDirection: "column",
               border: plan.highlight ? "2px solid var(--accent)" : "1px solid var(--border)",

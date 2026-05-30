@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import * as XLSX from "xlsx";
-import { Upload, FileSpreadsheet, Star, ExternalLink, RefreshCcw, Package } from "lucide-react";
+import { Upload, FileSpreadsheet, Star, ExternalLink, RefreshCcw, Package, FileText } from "lucide-react";
 
 interface AnalyzedProduct {
   asin: string;
@@ -164,7 +164,23 @@ export default function BulkAnalyzer() {
 
       {/* ── Loading / Progress ── */}
       {(analyzing || results.length > 0) && (
-        <div className="glass-card" style={{ padding: 0, overflow: "hidden" }}>
+        <div id="printable-report" className="glass-card" style={{ padding: 0, overflow: "hidden" }}>
+          {/* Print Only Header */}
+          <div className="print-only-header" style={{ display: "none" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "3px solid #4f46e5", paddingBottom: 16, marginBottom: 20 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <img src="/logo.png" alt="RetailStacker Logo" style={{ width: 44, height: 44 }} />
+                <div>
+                  <h1 style={{ fontSize: 24, fontWeight: 900, color: "#000", margin: 0 }}>RetailStacker Bulk ASIN Report</h1>
+                  <p style={{ fontSize: 12, color: "#666", margin: "4px 0 0" }}>Amazon India Seller Market Intelligence</p>
+                </div>
+              </div>
+              <div style={{ textAlign: "right", color: "#000" }}>
+                <div style={{ fontSize: 12, fontWeight: 600 }}>Date Generated: {new Date().toLocaleDateString("en-IN")}</div>
+                <div style={{ fontSize: 11, color: "#666", marginTop: 2 }}>{results.length} Products Analyzed</div>
+              </div>
+            </div>
+          </div>
           
           <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -176,13 +192,22 @@ export default function BulkAnalyzer() {
             </div>
 
             {!analyzing && (
-              <button 
-                onClick={() => { setResults([]); setProgress(0); setTotalAsins(0); }}
-                className="btn-ghost"
-                style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, padding: "6px 12px" }}
-              >
-                <RefreshCcw size={14} /> Analyze Another File
-              </button>
+              <div style={{ display: "flex", gap: 10 }} className="no-print">
+                <button
+                  onClick={() => window.print()}
+                  className="btn-accent"
+                  style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, padding: "6px 12px" }}
+                >
+                  <FileText size={14} /> Download PDF Report
+                </button>
+                <button 
+                  onClick={() => { setResults([]); setProgress(0); setTotalAsins(0); }}
+                  className="btn-ghost"
+                  style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, padding: "6px 12px" }}
+                >
+                  <RefreshCcw size={14} /> Analyze Another File
+                </button>
+              </div>
             )}
           </div>
 
@@ -269,6 +294,88 @@ export default function BulkAnalyzer() {
         </div>
       )}
 
+      <style>{`
+        @media print {
+          /* Hide all dashboard/web containers */
+          body * {
+            visibility: hidden;
+          }
+          
+          /* Only show the print-only report card */
+          #printable-report, #printable-report * {
+            visibility: visible;
+          }
+          
+          #printable-report {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100% !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+          }
+          
+          .no-print {
+            display: none !important;
+          }
+          
+          .print-only-header {
+            display: block !important;
+            margin-bottom: 24px;
+          }
+          
+          /* Keep precise styles and background colors in print */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          /* Premium printed table layout */
+          .data-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            background: #ffffff !important;
+          }
+          
+          .data-table th, .data-table td {
+            border: 1px solid #cbd5e1 !important;
+            color: #0d1117 !important;
+            background: #ffffff !important;
+            padding: 10px 12px !important;
+            font-size: 12px !important;
+          }
+          
+          .data-table tr {
+            page-break-inside: avoid !important;
+          }
+          
+          .data-table th {
+            font-weight: 700 !important;
+            background: #f1f5f9 !important;
+          }
+          
+          /* BSR and Margin custom styling retention in black & white/color print */
+          span[style*="color: var(--success)"] {
+            color: #16a34a !important;
+            font-weight: 700 !important;
+          }
+          span[style*="color: var(--warning)"] {
+            color: #d97706 !important;
+            font-weight: 700 !important;
+          }
+          span[style*="color: var(--danger)"] {
+            color: #dc2626 !important;
+            font-weight: 700 !important;
+          }
+          span[style*="color: var(--accent)"] {
+            color: #4f46e5 !important;
+            font-weight: 700 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

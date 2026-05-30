@@ -5,6 +5,7 @@ import { Suspense, useState } from "react";
 import { loginAction, sendOtpAction, registerAction } from "../../actions/auth";
 import { ArrowRight, Mail, Lock, KeyRound, User, Briefcase } from "lucide-react";
 import Link from "next/link";
+import PublicNavbar from "@/components/PublicNavbar";
 
 type AuthMode = "login-user" | "login-reseller" | "signup-user" | "signup-reseller";
 
@@ -102,7 +103,7 @@ function AuthForm() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 16px", position: "relative", overflow: "hidden" }}>
+    <div style={{ minHeight: "calc(100vh - 72px)", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 16px", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", top: "-10%", left: "-10%", width: "50%", height: "50%", background: "radial-gradient(circle, var(--accent-muted) 0%, transparent 70%)", opacity: 0.5, pointerEvents: "none" }} />
       <div style={{ position: "absolute", bottom: "-10%", right: "-10%", width: "50%", height: "50%", background: "radial-gradient(circle, var(--purple-muted) 0%, transparent 70%)", opacity: 0.5, pointerEvents: "none" }} />
 
@@ -253,6 +254,7 @@ function AuthForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={<div style={{ minHeight: "100vh", background: "var(--bg-primary)" }} />}>
+      <PublicNavbar />
       <AuthForm />
     </Suspense>
   );
