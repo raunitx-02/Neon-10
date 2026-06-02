@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, Download } from "lucide-react";
@@ -13,7 +14,12 @@ const NAV_LINKS = [
 export default function PublicNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [installStepsOpen, setInstallStepsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleDownload = () => {
     // Trigger download
@@ -195,7 +201,7 @@ export default function PublicNavbar() {
       )}
 
       {/* Installation Steps Dialog */}
-      {installStepsOpen && (
+      {mounted && installStepsOpen && createPortal(
         <div style={{
           position: "fixed",
           top: 0,
@@ -221,7 +227,7 @@ export default function PublicNavbar() {
             border: "1px solid var(--border)",
             display: "flex",
             flexDirection: "column",
-            animation: "scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
+            animation: "scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
           }}>
             <button
               onClick={() => setInstallStepsOpen(false)}
@@ -308,7 +314,8 @@ export default function PublicNavbar() {
               Got it, let's start!
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <style>{`
@@ -333,7 +340,7 @@ export default function PublicNavbar() {
         }
         @keyframes scaleIn {
           from {
-            transform: scale(0.95);
+            transform: scale(0.85);
             opacity: 0;
           }
           to {
