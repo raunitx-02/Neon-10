@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Download } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Pricing", href: "/pricing" },
@@ -12,7 +12,22 @@ const NAV_LINKS = [
 
 export default function PublicNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [installStepsOpen, setInstallStepsOpen] = useState(false);
   const pathname = usePathname();
+
+  const handleDownload = () => {
+    // Trigger download
+    const link = document.createElement("a");
+    link.href = "/retailstacker-extension.zip";
+    link.download = "retailstacker-extension.zip";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Show popup
+    setInstallStepsOpen(true);
+    setMobileOpen(false);
+  };
 
   return (
     <nav style={{
@@ -63,6 +78,24 @@ export default function PublicNavbar() {
             {link.label}
           </Link>
         ))}
+        <button
+          onClick={handleDownload}
+          style={{
+            textDecoration: "none",
+            padding: "8px 16px",
+            borderRadius: 8,
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+          className="rs-download-btn"
+        >
+          <Download size={15} />
+          Download Extension
+        </button>
         <Link href="/login" style={{
           textDecoration: "none",
           padding: "8px 16px",
@@ -137,6 +170,144 @@ export default function PublicNavbar() {
           <Link href="/login?mode=signup" onClick={() => setMobileOpen(false)} style={{ textDecoration: "none", padding: "12px 16px", borderRadius: 10, fontSize: 15, fontWeight: 700, color: "white", background: "var(--accent)", textAlign: "center", marginTop: 8 }}>
             Get Started Free
           </Link>
+          <button
+            onClick={handleDownload}
+            style={{
+              padding: "12px 16px",
+              borderRadius: 10,
+              fontSize: 15,
+              fontWeight: 700,
+              textAlign: "center",
+              marginTop: 4,
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            }}
+            className="rs-download-btn"
+          >
+            <Download size={16} />
+            Download Extension
+          </button>
+        </div>
+      )}
+
+      {/* Installation Steps Dialog */}
+      {installStepsOpen && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(10, 22, 40, 0.8)",
+          backdropFilter: "blur(8px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 99999,
+          padding: 20
+        }}>
+          <div style={{
+            background: "#ffffff",
+            borderRadius: 16,
+            width: "100%",
+            maxWidth: 550,
+            padding: 32,
+            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.25)",
+            position: "relative",
+            border: "1px solid var(--border)",
+            display: "flex",
+            flexDirection: "column",
+            animation: "scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)"
+          }}>
+            <button
+              onClick={() => setInstallStepsOpen(false)}
+              style={{
+                position: "absolute",
+                top: 20,
+                right: 20,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "#64748b",
+                padding: 4
+              }}
+            >
+              <X size={20} />
+            </button>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+              <div style={{
+                background: "rgba(6, 182, 212, 0.1)",
+                padding: 10,
+                borderRadius: 12,
+                color: "#00B4D8"
+              }}>
+                <Download size={24} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 20, fontWeight: 800, color: "#0F172A", margin: 0 }}>Extension Downloaded!</h3>
+                <p style={{ fontSize: 13, color: "#64748b", margin: "2px 0 0 0" }}>Follow these 5 simple steps to install in Chrome:</p>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 24 }}>
+              {[
+                { step: "1", title: "Extract the Zip file", desc: "Locate the downloaded 'retailstacker-extension.zip' file on your computer and extract/unzip it into a folder." },
+                { step: "2", title: "Open Chrome Extensions", desc: "Open Google Chrome and navigate to chrome://extensions/ in the URL bar." },
+                { step: "3", title: "Enable Developer Mode", desc: "Toggle the Developer mode switch in the top-right corner of the extensions page to ON." },
+                { step: "4", title: "Load Unpacked Folder", desc: "Click the Load unpacked button in the top-left corner of the page." },
+                { step: "5", title: "Select Extracted Folder", desc: "Browse to the folder you extracted in Step 1 and select it to install. You're ready to stack!" }
+              ].map((item) => (
+                <div key={item.step} style={{ display: "flex", gap: 14 }}>
+                  <div style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #0C1E36 0%, #00B4D8 100%)",
+                    color: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 12,
+                    fontWeight: 800,
+                    flexShrink: 0,
+                    boxShadow: "0 2px 6px rgba(0, 180, 216, 0.3)"
+                  }}>
+                    {item.step}
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: 14, fontWeight: 700, color: "#1E293B", margin: "0 0 2px 0" }}>{item.title}</h4>
+                    <p style={{ fontSize: 12, color: "#64748b", margin: 0, lineHeight: 1.4 }}>{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setInstallStepsOpen(false)}
+              style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: 10,
+                background: "#0C1E36",
+                color: "white",
+                fontSize: 14,
+                fontWeight: 700,
+                border: "none",
+                cursor: "pointer",
+                textAlign: "center",
+                transition: "all 0.2s",
+                boxShadow: "0 4px 12px rgba(12, 30, 54, 0.2)"
+              }}
+              className="rs-modal-ok-btn"
+            >
+              Got it, let's start!
+            </button>
+          </div>
         </div>
       )}
 
@@ -144,6 +315,31 @@ export default function PublicNavbar() {
         @media (max-width: 768px) {
           .public-nav-links { display: none !important; }
           .mobile-menu-btn { display: block !important; }
+        }
+        .rs-download-btn {
+          background: rgba(6, 182, 212, 0.1) !important;
+          border: 1px solid rgba(6, 182, 212, 0.3) !important;
+          color: #00B4D8 !important;
+          transition: all 0.2s !important;
+        }
+        .rs-download-btn:hover {
+          background: rgba(6, 182, 212, 0.2) !important;
+          border-color: #00B4D8 !important;
+          box-shadow: 0 0 12px rgba(6, 182, 212, 0.2) !important;
+        }
+        .rs-modal-ok-btn:hover {
+          background: #1a3a60 !important;
+          box-shadow: 0 4px 16px rgba(12, 30, 54, 0.3) !important;
+        }
+        @keyframes scaleIn {
+          from {
+            transform: scale(0.95);
+            opacity: 0;
+          }
+          to {
+            transform: scale(1);
+            opacity: 1;
+          }
         }
       `}</style>
     </nav>
