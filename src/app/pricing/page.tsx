@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { CheckCircle, ShieldCheck } from "lucide-react";
+import { CheckCircle, ShieldCheck, X } from "lucide-react";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import PublicNavbar from "@/components/PublicNavbar";
@@ -166,6 +166,88 @@ export default function PricingPage() {
         </div>
       </section>
 
+      {/* Dynamic Feature Comparison Table */}
+      <section style={{ maxWidth: 1200, margin: "0 auto 120px", padding: "0 24px" }}>
+        <h2 style={{ fontSize: "28px", fontWeight: 800, textAlign: "center", marginBottom: 40 }}>
+          Compare Plans & Features
+        </h2>
+        
+        <div className="glass-card" style={{ overflowX: "auto", padding: "24px 0" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
+            <thead>
+              <tr style={{ borderBottom: "2px solid var(--border)" }}>
+                <th style={{ padding: "16px 24px", textAlign: "left", fontSize: 13, textTransform: "uppercase", color: "var(--text-muted)", fontWeight: 700, width: "35%" }}>
+                  Feature (A to Z)
+                </th>
+                {plans.map(p => (
+                  <th key={p.name} style={{ padding: "16px 24px", textAlign: "center", fontSize: 15, color: "var(--text-primary)", fontWeight: 800 }}>
+                    {p.name}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {(() => {
+                // Helper to dynamically resolve inherited features
+                const resolveFeatures = (planName: string, allPlans: any[]): string[] => {
+                  const plan = allPlans.find(op => op.name === planName);
+                  if (!plan) return [];
+                  let resolved: string[] = [];
+                  for (const f of plan.features) {
+                    if (f.startsWith("Everything in ")) {
+                      const parentName = f.replace("Everything in ", "").trim();
+                      resolved = [...resolved, ...resolveFeatures(parentName, allPlans)];
+                    } else {
+                      resolved.push(f);
+                    }
+                  }
+                  return Array.from(new Set(resolved));
+                };
+
+                const resolvedMap = plans.reduce((acc, p) => {
+                  acc[p.name] = resolveFeatures(p.name, plans);
+                  return acc;
+                }, {} as Record<string, string[]>);
+
+                const allFeatures = Array.from(new Set(
+                  Object.values(resolvedMap).flat()
+                )).sort((a, b) => a.localeCompare(b));
+
+                if (allFeatures.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={plans.length + 1} style={{ padding: "32px 24px", textAlign: "center", color: "var(--text-muted)" }}>
+                        No features found.
+                      </td>
+                    </tr>
+                  );
+                }
+
+                return allFeatures.map((feat) => (
+                  <tr key={feat} className="comparison-row" style={{ borderBottom: "1px solid var(--border)", transition: "background 0.2s" }}>
+                    <td style={{ padding: "16px 24px", fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+                      {feat}
+                    </td>
+                    {plans.map(p => {
+                      const hasFeat = resolvedMap[p.name].includes(feat);
+                      return (
+                        <td key={p.name} style={{ padding: "16px 24px", textAlign: "center" }}>
+                          {hasFeat ? (
+                            <CheckCircle size={20} color="#10b981" style={{ display: "inline-block" }} />
+                          ) : (
+                            <X size={20} color="#ef4444" style={{ display: "inline-block" }} />
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ));
+              })()}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       {/* Security Banner */}
       <section style={{ textAlign: "center", padding: "0 24px 80px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, color: "var(--text-muted)", fontSize: 14, fontWeight: 600 }}>
@@ -173,7 +255,12 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .comparison-row:hover {
+          background: var(--bg-card-hover, rgba(0,0,0,0.02));
+        }
+      `}</style>
     </div>
   );
 }
