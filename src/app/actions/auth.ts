@@ -79,17 +79,17 @@ async function sendOtpEmail(email: string, otp: string, subject: string, heading
 export async function loginAction(email: string, password: string) {
   if (email === "admin@admin.com" && password === "Admin@2345") {
     const cookieStore = await cookies();
-    cookieStore.set("retailstacker_user", "admin@admin.com", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
-    cookieStore.set("retailstacker_plan", "Diamond", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
-    cookieStore.set("retailstacker_role", "admin", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
+    cookieStore.set("retailstacker_user", "admin@admin.com", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
+    cookieStore.set("retailstacker_plan", "Diamond", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
+    cookieStore.set("retailstacker_role", "admin", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
     return { success: true, role: "admin" };
   }
 
   if (email === "admin@retailstacker.com" && password === "Admin@0987") {
     const cookieStore = await cookies();
-    cookieStore.set("retailstacker_user", "admin@retailstacker.com", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
-    cookieStore.set("retailstacker_plan", "Diamond", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
-    cookieStore.set("retailstacker_role", "admin", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
+    cookieStore.set("retailstacker_user", "admin@retailstacker.com", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
+    cookieStore.set("retailstacker_plan", "Diamond", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
+    cookieStore.set("retailstacker_role", "admin", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
     return { success: true, role: "admin" };
   }
 
@@ -101,14 +101,14 @@ export async function loginAction(email: string, password: string) {
   }
 
   const cookieStore = await cookies();
-  cookieStore.set("retailstacker_user", user.email, { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
-  cookieStore.set("retailstacker_plan", user.plan || "Free", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
+  cookieStore.set("retailstacker_user", user.email, { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
+  cookieStore.set("retailstacker_plan", user.plan || "Free", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
   
   if (user.role) {
-    cookieStore.set("retailstacker_role", user.role, { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
+    cookieStore.set("retailstacker_role", user.role, { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
   } else {
     // Clear old role if switching accounts
-    cookieStore.set("retailstacker_role", "user", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
+    cookieStore.set("retailstacker_role", "user", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
   }
 
   return { success: true, role: user.role };
@@ -172,9 +172,9 @@ export async function registerAction(
   appendSignupCsv({ firstName, lastName, email, mobile, role, plan: "Free" });
 
   const cookieStore = await cookies();
-  cookieStore.set("retailstacker_user", email, { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
-  cookieStore.set("retailstacker_plan", "Free", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
-  cookieStore.set("retailstacker_role", role, { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
+  cookieStore.set("retailstacker_user", email, { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
+  cookieStore.set("retailstacker_plan", "Free", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
+  cookieStore.set("retailstacker_role", role, { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
 
   return { success: true };
 }

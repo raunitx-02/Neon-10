@@ -13,6 +13,6 @@ export async function POST(req: Request) {
   // Admin cannot downgrade
   if (currentUser === "admin@admin.com") return NextResponse.json({ error: "Admin plan cannot be changed" }, { status: 403 });
 
-  cookieStore.set("retailstacker_plan", plan, { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
+  cookieStore.set("retailstacker_plan", plan, { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
   return NextResponse.json({ success: true, plan });
 }

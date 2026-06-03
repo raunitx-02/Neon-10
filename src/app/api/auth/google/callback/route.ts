@@ -81,9 +81,9 @@ export async function GET(req: NextRequest) {
 
     // Set auth cookies
     const cookieStore = await cookies();
-    cookieStore.set("retailstacker_user", user.email, { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
-    cookieStore.set("retailstacker_plan", user.plan || "Free", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
-    cookieStore.set("retailstacker_role", user.role || "user", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production" });
+    cookieStore.set("retailstacker_user", user.email, { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
+    cookieStore.set("retailstacker_plan", user.plan || "Free", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
+    cookieStore.set("retailstacker_role", user.role || "user", { path: "/", httpOnly: true, secure: process.env.NODE_ENV === "production", maxAge: 30 * 24 * 60 * 60 });
 
     // New users go to pricing to pick a plan, existing go to dashboard
     if (isNewUser) {

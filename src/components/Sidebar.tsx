@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -8,7 +9,7 @@ import {
   Wrench, ChevronRight, ChevronLeft, Bell, Package, TrendingUp,
   ShieldCheck, RefreshCcw, Mail, Boxes, Zap, Cpu, QrCode, Link2,
   Sparkles, Target, BookOpen, FlaskConical, IndianRupee, Truck, ScanLine, Lock, UserCircle,
-  Upload, Store, Image as ImageIcon, ShoppingBag, Calculator
+  Upload, Store, Image as ImageIcon, ShoppingBag, Calculator, Download, LogOut, AlertTriangle
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -66,6 +67,11 @@ const nav = [
     label: "Dashboard",
     icon: LayoutDashboard,
     href: "/dashboard",
+  },
+  {
+    label: "Chrome Extension",
+    icon: Download,
+    href: "/tools/chrome-extension",
   },
   {
     label: "My Profile",
@@ -157,7 +163,13 @@ export default function Sidebar({ plan = "Starter", user = "", role = "user" }: 
   const initials = displayName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
 
   const [collapsed, setCollapsed] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>(["Product Research", "Keywords", "Listing Optimization", "Operations", "Analytics & Ads", "Tools"]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleGroup = (label: string) => {
     setOpenGroups(prev =>
@@ -196,7 +208,7 @@ export default function Sidebar({ plan = "Starter", user = "", role = "user" }: 
       const starterPlan = plans.find(p => p.name === "Starter");
       if (starterPlan && starterPlan.features.includes(label)) return true;
     }
-    if (["/dashboard", "/profile"].includes(href)) return true;
+    if (["/dashboard", "/profile", "/tools/chrome-extension"].includes(href)) return true;
     return false;
   };
 
@@ -487,10 +499,9 @@ export default function Sidebar({ plan = "Starter", user = "", role = "user" }: 
             <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
               <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--success)" }} />
               <button 
-                onClick={async (e) => {
+                onClick={(e) => {
                   e.preventDefault();
-                  await fetch("/api/auth/logout", { method: "POST" });
-                  window.location.href = "/";
+                  setLogoutConfirmOpen(true);
                 }}
                 style={{ fontSize: 10, color: "var(--danger)", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 600 }}
               >
@@ -499,6 +510,80 @@ export default function Sidebar({ plan = "Starter", user = "", role = "user" }: 
             </div>
           </div>
         </Link>
+      )}
+
+      {mounted && logoutConfirmOpen && createPortal(
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(10, 22, 40, 0.8)",
+          backdropFilter: "blur(8px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          zIndex: 99999, padding: 20
+        }}>
+          <div style={{
+            background: "#13131a",
+            border: "1px solid var(--border)",
+            borderRadius: 18,
+            width: "100%",
+            maxWidth: 400,
+            padding: 32,
+            boxShadow: "0 24px 60px rgba(0, 0, 0, 0.5)",
+            textAlign: "center",
+            animation: "scaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
+          }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: "50%",
+              background: "rgba(239, 68, 68, 0.1)",
+              color: "#ef4444",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              margin: "0 auto 20px"
+            }}>
+              <AlertTriangle size={28} />
+            </div>
+
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "white", margin: "0 0 10px 0" }}>
+              Confirm Log Out
+            </h3>
+            <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 24px 0", lineHeight: 1.5 }}>
+              Are you sure you want to log out of RetailStacker? Your active session will be terminated.
+            </p>
+
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                onClick={() => setLogoutConfirmOpen(false)}
+                style={{
+                  flex: 1, padding: "12px", borderRadius: 10,
+                  background: "var(--bg-secondary)", border: "1px solid var(--border)",
+                  color: "var(--text-secondary)", fontSize: 14, fontWeight: 700,
+                  cursor: "pointer", transition: "all 0.2s"
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = "var(--bg-card-hover)"}
+                onMouseLeave={e => e.currentTarget.style.background = "var(--bg-secondary)"}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  await fetch("/api/auth/logout", { method: "POST" });
+                  window.location.href = "/";
+                }}
+                style={{
+                  flex: 1, padding: "12px", borderRadius: 10,
+                  background: "#ef4444", border: "none",
+                  color: "white", fontSize: 14, fontWeight: 700,
+                  cursor: "pointer", transition: "all 0.2s",
+                  boxShadow: "0 4px 12px rgba(239, 68, 68, 0.3)"
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = "#dc2626"}
+                onMouseLeave={e => e.currentTarget.style.background = "#ef4444"}
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </aside>
   );
