@@ -1,16 +1,16 @@
 /* Premium Injected Styles for RetailStacker Amazon India Intelligence Extension */
 
 :root {
-  --rs-bg-main: #04080f;
-  --rs-bg-panel: rgba(10, 15, 26, 0.65);
-  --rs-bg-card: rgba(20, 30, 50, 0.45);
-  --rs-border: rgba(255, 255, 255, 0.12);
-  --rs-text-primary: #ffffff;
-  --rs-text-secondary: #94a3b8;
+  --rs-bg-main: #f8fafc;
+  --rs-bg-panel: rgba(255, 255, 255, 0.75);
+  --rs-bg-card: rgba(255, 255, 255, 0.85);
+  --rs-border: rgba(226, 232, 240, 0.8);
+  --rs-text-primary: #0f172a;
+  --rs-text-secondary: #64748b;
   --rs-accent-blue: #6366f1;
   --rs-accent-cyan: #06b6d4;
-  --rs-accent-gradient: linear-gradient(135deg, #6366f1, #06b6d4, #d946ef);
-  --rs-glow: 0 0 24px rgba(99, 102, 241, 0.35);
+  --rs-accent-gradient: linear-gradient(135deg, #4f46e5, #06b6d4, #d946ef);
+  --rs-glow: 0 4px 20px rgba(99, 102, 241, 0.1);
   --rs-glass: blur(24px) saturate(220%);
 }
 
@@ -55,8 +55,8 @@
 
 /* ─── 2. Search Results Page Header Widget (Averages Bar) ───────────────────── */
 .rs-search-header-bar {
-  background: var(--rs-bg-panel) !important;
-  border: 1px solid var(--rs-border) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(240, 246, 255, 0.7)) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
   border-radius: 12px !important;
   padding: 16px 20px !important;
   margin: 15px 0 20px 0 !important;
@@ -66,7 +66,7 @@
   align-items: center !important;
   justify-content: space-between !important;
   backdrop-filter: var(--rs-glass) !important;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04), inset 0 1px 2px rgba(255, 255, 255, 0.9) !important;
   z-index: 9999;
   flex-wrap: wrap !important;
   gap: 12px !important;
@@ -114,14 +114,14 @@
 .rs-sh-stat-val {
   font-size: 15px !important;
   font-weight: 700 !important;
-  color: #fff !important;
+  color: #0f172a !important;
   white-space: nowrap !important;
 }
 
 /* ─── 3. In-Grid Product Card Info Overlay ─────────────────────────────────────── */
 .rs-grid-card-overlay {
-  background: rgba(10, 22, 40, 0.95) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(240, 246, 255, 0.75)) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
   border-radius: 6px !important;
   padding: 6px 10px !important;
   margin: 6px 0 !important;
@@ -132,10 +132,11 @@
   align-items: center !important;
   justify-content: space-between !important;
   gap: 8px !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
   width: 100% !important;
   box-sizing: border-box !important;
   flex-wrap: wrap !important;
+  backdrop-filter: blur(8px) !important;
 }
 
 .rs-gc-item {
