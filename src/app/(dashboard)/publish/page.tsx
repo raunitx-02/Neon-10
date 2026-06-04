@@ -65,6 +65,7 @@ export default function PublishPage() {
 
   const [connections, setConnections] = useState<Record<string, boolean>>({});
   const [apiKeys, setApiKeys] = useState<Record<string, Record<string, string>>>({});
+  const [syncPlatforms, setSyncPlatforms] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     try {
@@ -93,8 +94,36 @@ export default function PublishPage() {
     });
   };
 
+  const renderCrossPublish = (platform: string) => {
+    return (
+      <div style={{ marginTop: 12, padding: "14px 18px", background: "var(--bg-secondary)", borderRadius: 12, border: "1px solid var(--border)", marginBottom: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 10 }}>
+          Cross-Publish to other connected channels:
+        </div>
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          {MARKETPLACES.filter(m => m.id !== platform).map(m => {
+            const isConnected = !!connections[m.id];
+            return (
+              <label key={m.id} style={{ display: "flex", alignItems: "center", gap: 8, cursor: isConnected ? "pointer" : "not-allowed", opacity: isConnected ? 1 : 0.5, fontSize: 12, fontWeight: 600 }}>
+                <input
+                  type="checkbox"
+                  disabled={!isConnected}
+                  checked={!!syncPlatforms[m.id]}
+                  onChange={e => setSyncPlatforms(prev => ({ ...prev, [m.id]: e.target.checked }))}
+                  style={{ width: 15, height: 15, cursor: isConnected ? "pointer" : "not-allowed" }}
+                />
+                <Image src={m.logo} alt={m.name} width={15} height={15} style={{ objectFit: "contain" }} unoptimized />
+                {m.name} {!isConnected && <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 500 }}>(Not connected)</span>}
+              </label>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const handlePublish = async (platform: string) => {
-    // 1. Strict connection validation
+    // 1. Strict connection validation for active platform
     const isConnected = !!connections[platform];
     if (!isConnected) {
       triggerToast(`Marketplace not connected! Go to 'My Profile' → 'Marketplace Integrations' to connect your ${platform.toUpperCase()} seller account first.`, "error");
@@ -112,95 +141,135 @@ export default function PublishPage() {
       return;
     }
 
+    // Determine all platforms to publish to (active platform + any checked sync platforms)
+    const platformsToPublish = [platform, ...Object.keys(syncPlatforms).filter(p => syncPlatforms[p])];
+    
     setPublishing(true);
+    let successCount = 0;
+    let errors: string[] = [];
 
-    try {
-      if (platform === "shopify") {
-        const storeDomain = apiKeys.shopify?.shopDomain;
-        const token = apiKeys.shopify?.accessToken;
-
-        if (!storeDomain || !token) {
-          throw new Error("Shopify credentials not found. Reconnect store in My Profile.");
+    for (const p of platformsToPublish) {
+      try {
+        let currentTitle = "", currentPrice = 0, currentSku = "";
+        
+        // Retrieve title/price/sku from corresponding form OR fallback to active tab's values if cross-publishing
+        if (p === "amazon") { 
+          currentTitle = amzTitle || title; 
+          currentPrice = parseFloat(amzPrice) || price; 
+          currentSku = amzASIN || sku || "AUTO-AMZ"; 
+        } else if (p === "flipkart") { 
+          currentTitle = fkTitle || title; 
+          currentPrice = parseFloat(fkPrice) || price; 
+          currentSku = fkFSN || sku || "AUTO-FK"; 
+        } else if (p === "meesho") { 
+          currentTitle = meeshoName || title; 
+          currentPrice = parseFloat(meeshoPrice) || price; 
+          currentSku = "AUTO-M"; 
+        } else if (p === "shopify") { 
+          currentTitle = shopifyTitle || title; 
+          currentPrice = parseFloat(shopifyPrice) || price; 
+          currentSku = shopifyHandle || sku || "AUTO-SH"; 
         }
 
-        // Live Custom App API publication
-        const res = await fetch("/api/shopify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            resource: "products",
-            shop: storeDomain,
-            accessToken: token,
+        if (!currentTitle || !currentPrice) {
+          throw new Error(`Title and Price are required for ${p.toUpperCase()}`);
+        }
+
+        if (p === "shopify") {
+          const storeDomain = apiKeys.shopify?.shopDomain;
+          const token = apiKeys.shopify?.accessToken;
+
+          if (!storeDomain || !token) {
+            throw new Error("Shopify credentials not found. Reconnect store in My Profile.");
+          }
+
+          // Live Custom App API publication
+          const res = await fetch("/api/shopify", {
             method: "POST",
-            payload: {
-              product: {
-                title: shopifyTitle,
-                vendor: shopifyVendor || "RetailStacker",
-                product_type: shopifyType || "General",
-                tags: shopifyTags || "",
-                status: "active",
-                variants: [
-                  {
-                    price: shopifyPrice,
-                    sku: shopifyHandle || `SKU-${Date.now()}`
-                  }
-                ]
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              resource: "products",
+              shop: storeDomain,
+              accessToken: token,
+              method: "POST",
+              payload: {
+                product: {
+                  title: currentTitle,
+                  vendor: shopifyVendor || "RetailStacker",
+                  product_type: shopifyType || "General",
+                  tags: shopifyTags || "",
+                  status: "active",
+                  variants: [
+                    {
+                      price: String(currentPrice),
+                      sku: currentSku
+                    }
+                  ]
+                }
               }
-            }
-          })
-        });
+            })
+          });
 
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to publish listing to Shopify store.");
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            throw new Error(data.error || "Failed to publish listing to Shopify store.");
+          }
+
+          const newListing: PublishedItem = {
+            id: `PUB-${Math.floor(10000 + Math.random() * 90000)}`,
+            title: currentTitle,
+            price: currentPrice,
+            sku: data.product?.variants?.[0]?.sku || currentSku,
+            brand: shopifyVendor || "RetailStacker",
+            marketplaces: ["shopify"],
+            date: new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
+            status: "Active"
+          };
+
+          setPublishedListings(prev => {
+            const updated = [newListing, ...prev];
+            localStorage.setItem("retailstacker_published_listings", JSON.stringify(updated));
+            return updated;
+          });
+          successCount++;
+        } else {
+          // Amazon, Flipkart, Meesho sandbox simulation/submission
+          await new Promise(r => setTimeout(r, 1000)); // validate credentials & upload details
+
+          const newListing: PublishedItem = {
+            id: `PUB-${Math.floor(10000 + Math.random() * 90000)}`,
+            title: currentTitle,
+            price: currentPrice,
+            sku: currentSku,
+            brand: "RetailStacker User",
+            marketplaces: [p],
+            date: new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
+            status: "Pending Approval"
+          };
+
+          setPublishedListings(prev => {
+            const updated = [newListing, ...prev];
+            localStorage.setItem("retailstacker_published_listings", JSON.stringify(updated));
+            return updated;
+          });
+          successCount++;
         }
-
-        const newListing: PublishedItem = {
-          id: `PUB-${Math.floor(10000 + Math.random() * 90000)}`,
-          title: shopifyTitle,
-          price: parseFloat(shopifyPrice),
-          sku: data.product?.variants?.[0]?.sku || shopifyHandle || "AUTO-SH",
-          brand: shopifyVendor || "RetailStacker",
-          marketplaces: ["shopify"],
-          date: new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
-          status: "Active"
-        };
-
-        const updated = [newListing, ...publishedListings];
-        setPublishedListings(updated);
-        localStorage.setItem("retailstacker_published_listings", JSON.stringify(updated));
-
-        triggerToast("Product created and published directly on Shopify store! ✓", "success");
-        confetti({ particleCount: 80, spread: 60 });
-      } else {
-        // Amazon, Flipkart, Meesho sandbox simulation/submission
-        await new Promise(r => setTimeout(r, 1200)); // validate credentials
-        await new Promise(r => setTimeout(r, 1000)); // upload catalog details
-
-        const newListing: PublishedItem = {
-          id: `PUB-${Math.floor(10000 + Math.random() * 90000)}`,
-          title,
-          price,
-          sku,
-          brand: "RetailStacker User",
-          marketplaces: [platform],
-          date: new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
-          status: "Pending Approval"
-        };
-
-        const updated = [newListing, ...publishedListings];
-        setPublishedListings(updated);
-        localStorage.setItem("retailstacker_published_listings", JSON.stringify(updated));
-
-        triggerToast(`Listing pushed to ${platform.toUpperCase()} Seller Panel successfully!`, "success");
-        confetti({ particleCount: 80, spread: 60 });
+      } catch (err: any) {
+        console.error(`Sync error on ${p}:`, err);
+        errors.push(`${p.toUpperCase()}: ${err.message || "Failed"}`);
       }
-    } catch (err: any) {
-      console.error("[Publish Error]", err);
-      triggerToast(err.message || "Failed to publish listing. Please check credentials.", "error");
-    } finally {
-      setPublishing(false);
     }
+
+    if (errors.length === 0) {
+      triggerToast(`Listing published to all ${successCount} platforms successfully! ✓`, "success");
+      confetti({ particleCount: 100, spread: 80 });
+      setSyncPlatforms({});
+    } else if (successCount > 0) {
+      triggerToast(`Published to ${successCount} channels. Errors: ${errors.join(", ")}`, "error");
+    } else {
+      triggerToast(`Publishing failed: ${errors.join(", ")}`, "error");
+    }
+    setPublishing(false);
   };
 
   const handleDeleteListing = (id: string) => {
@@ -228,7 +297,7 @@ export default function PublishPage() {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 350px", gap: 24 }}>
+      <div className="publish-grid">
         
         {/* Left Column - Dynamic Forms */}
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -303,6 +372,7 @@ export default function PublishPage() {
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-muted)", marginBottom: 8 }}>Backend Search Terms (250 bytes max)</label>
                   <textarea value={amzSearchTerms} onChange={e => setAmzSearchTerms(e.target.value)} placeholder="keyword1, keyword2..." className="input-field" rows={3} />
                 </div>
+                {renderCrossPublish("amazon")}
                 <button onClick={() => handlePublish("amazon")} disabled={publishing} className="btn-accent" style={{ background: "#FF9900", color: "#000", marginTop: 16 }}>{publishing ? "Connecting SP-API..." : "Upload to Amazon India"}</button>
               </div>
             )}
@@ -342,6 +412,7 @@ export default function PublishPage() {
                     <input type="number" value={fkInventory} onChange={e => setFkInventory(e.target.value)} placeholder="Qty" className="input-field" />
                   </div>
                 </div>
+                {renderCrossPublish("flipkart")}
                 <button onClick={() => handlePublish("flipkart")} disabled={publishing} className="btn-accent" style={{ background: "#047BD5", marginTop: 16 }}>{publishing ? "Connecting API..." : "Upload to Flipkart"}</button>
               </div>
             )}
@@ -377,6 +448,7 @@ export default function PublishPage() {
                     <option>Single</option><option>Pack of 2</option><option>Pack of 3</option><option>Pack of 5+</option>
                   </select>
                 </div>
+                {renderCrossPublish("meesho")}
                 <button onClick={() => handlePublish("meesho")} disabled={publishing} className="btn-accent" style={{ background: "#9B30FF", marginTop: 16 }}>{publishing ? "Generating CSV format..." : "Publish to Meesho Catalog"}</button>
               </div>
             )}
@@ -420,6 +492,7 @@ export default function PublishPage() {
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text-muted)", marginBottom: 8 }}>Tags (comma separated)</label>
                   <input type="text" value={shopifyTags} onChange={e => setShopifyTags(e.target.value)} placeholder="summer, sale, electronics" className="input-field" />
                 </div>
+                {renderCrossPublish("shopify")}
                 <button onClick={() => handlePublish("shopify")} disabled={publishing} className="btn-accent" style={{ background: "#5E8E3E", marginTop: 16 }}>{publishing ? "Connecting API..." : "Upload to Shopify Store"}</button>
               </div>
             )}
@@ -506,6 +579,16 @@ export default function PublishPage() {
       <style dangerouslySetInnerHTML={{__html: `
         .input-field { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-secondary); color: white; font-size: 14px; outline: none; transition: border-color 0.2s; }
         .input-field:focus { border-color: var(--accent); }
+        .publish-grid {
+          display: grid;
+          grid-template-columns: 1fr 350px;
+          gap: 24px;
+        }
+        @media (max-width: 1024px) {
+          .publish-grid {
+            grid-template-columns: 1fr;
+          }
+        }
       `}} />
     </div>
   );
