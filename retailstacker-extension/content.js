@@ -503,12 +503,12 @@
             <span class="rs-gc-value">#${item.bsr ? item.bsr.toLocaleString() : "—"}</span>
           </div>
           <div class="rs-gc-item">
-            <span class="rs-gc-label">Var:</span>
-            <span class="rs-gc-value" style="color: var(--rs-text-primary);">${variationCount} Var</span>
+            <span class="rs-gc-label">Variants:</span>
+            <span class="rs-gc-value" style="color: var(--rs-text-primary);">${variationCount}</span>
           </div>
           <div class="rs-gc-item">
             <span class="rs-gc-label">Sellers:</span>
-            <span class="rs-gc-value" style="color: #4ade80;">${item.activeSellers} Sellers</span>
+            <span class="rs-gc-value" style="color: #16a34a;">${item.activeSellers}</span>
           </div>
         `;
         
