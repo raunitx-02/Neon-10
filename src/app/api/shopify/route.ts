@@ -1,7 +1,7 @@
 /**
  * Shopify Admin API Proxy
  * POST /api/shopify
- * Body: { resource, shop, accessToken, params? }
+ * Body: { resource, shop, accessToken, method?, payload?, params? }
  * Proxies requests to Shopify Admin REST API 2024-01
  */
 
@@ -17,10 +17,12 @@ type ShopifyResource = "products" | "orders" | "inventory_levels" | "customers" 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { resource, shop, accessToken, params = {} } = body as {
+    const { resource, shop, accessToken, method = "GET", payload, params = {} } = body as {
       resource: ShopifyResource;
       shop: string;
       accessToken: string;
+      method?: string;
+      payload?: any;
       params?: Record<string, string | number>;
     };
 
@@ -42,11 +44,12 @@ export async function POST(req: NextRequest) {
     const url = `https://${shopDomain}/admin/api/${SHOPIFY_API_VERSION}/${resource}.json${queryStr}`;
 
     const response = await fetch(url, {
-      method: "GET",
+      method: method.toUpperCase(),
       headers: {
         "X-Shopify-Access-Token": accessToken,
         "Content-Type": "application/json",
       },
+      body: method.toUpperCase() !== "GET" && payload ? JSON.stringify(payload) : undefined,
     });
 
     if (!response.ok) {
@@ -72,3 +75,4 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   return NextResponse.json({ status: "Shopify API proxy active", version: SHOPIFY_API_VERSION });
 }
+
