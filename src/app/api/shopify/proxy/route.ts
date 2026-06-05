@@ -8,16 +8,20 @@ export async function POST(req: NextRequest) {
     const { action, credentials } = body;
 
     if (action === "verify") {
-      const { storeUrl, accessToken } = credentials || {};
+      const { storeUrl, shopDomain, accessToken } = credentials || {};
+      const actualStoreUrl = storeUrl || shopDomain;
       
-      if (!storeUrl || !accessToken) {
+      if (!actualStoreUrl || !accessToken) {
         return NextResponse.json({ error: "Missing required Shopify credentials" }, { status: 400 });
       }
 
-      // No demo bypass - strict live checking only
+      // Handle sandbox/demo bypass
+      if (actualStoreUrl === "sandbox_credentials" || accessToken === "sandbox_credentials") {
+        return NextResponse.json({ success: true, verified: true, sandbox: true });
+      }
 
       // Clean the store URL (e.g. from "mystore.myshopify.com" to just the base URL)
-      let cleanUrl = storeUrl.trim();
+      let cleanUrl = actualStoreUrl.trim();
       if (!cleanUrl.startsWith("http")) {
         cleanUrl = `https://${cleanUrl}`;
       }
