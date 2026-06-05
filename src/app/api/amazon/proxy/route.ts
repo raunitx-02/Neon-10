@@ -14,7 +14,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Missing required SP-API credentials" }, { status: 400 });
       }
 
-      // No demo bypass - strict live checking only
+      // Handle sandbox/demo bypass
+      if (refreshToken === "sandbox_credentials" || clientId === "sandbox_credentials") {
+        return NextResponse.json({ success: true, accessToken: "sandbox_access_token", sandbox: true });
+      }
 
       // Actual SP-API Token generation request to LWA (Login with Amazon)
       const tokenUrl = "https://api.amazon.com/auth/o2/token";

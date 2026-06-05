@@ -466,6 +466,20 @@ export default function ProfileClient({ initialPlan, initialEmail }: { initialPl
                             {verifyingInt === int.id ? <RefreshCw size={14} className="spin" /> : <Link2 size={14} />} 
                             {verifyingInt === int.id ? "Verifying Credentials..." : `Save & Connect ${int.name.split(" ")[0]}`}
                           </button>
+                          <button
+                            onClick={() => {
+                              const mockFields: Record<string, string> = {};
+                              int.fields.forEach(f => {
+                                mockFields[f.key] = "sandbox_credentials";
+                              });
+                              handleConnect(int.id, mockFields);
+                            }}
+                            type="button"
+                            className="btn-ghost"
+                            style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--accent)" }}
+                          >
+                            ⚡ Connect Sandbox Mode
+                          </button>
                           {isConnected && (
                             <span style={{ fontSize: 12, color: "var(--success)", display: "flex", alignItems: "center", gap: 4 }}>
                               <CheckCircle2 size={14} /> Connected & Active
@@ -475,12 +489,22 @@ export default function ProfileClient({ initialPlan, initialEmail }: { initialPl
                         <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>🔒 Live API Verification: Your credentials will be securely tested against the platform before connection is approved.</p>
                       </div>
                     )}
-
+ 
                     {/* Meesho CSV upload */}
                     {int.id === "meesho" && (
                       <div>
                         <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>UPLOAD MEESHO ORDER CSV EXPORT</label>
-                        <input type="file" accept=".csv" className="input-field" style={{ cursor: "pointer" }} onChange={() => handleConnect("meesho", { csv: "uploaded_csv_meesho" })} />
+                        <div style={{ display: "flex", gap: 12, alignItems: "center", width: "100%" }}>
+                          <input type="file" accept=".csv" className="input-field" style={{ cursor: "pointer", flex: 1 }} onChange={() => handleConnect("meesho", { csv: "uploaded_csv_meesho" })} />
+                          <button
+                            onClick={() => handleConnect("meesho", { csv: "sandbox_credentials" })}
+                            type="button"
+                            className="btn-ghost"
+                            style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--accent)", border: "1px solid var(--border)", borderRadius: 12, padding: "12px 18px", height: "46px" }}
+                          >
+                            ⚡ Connect Sandbox Mode
+                          </button>
+                        </div>
                         <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>Accepted format: CSV exported from Meesho Supplier Panel → Orders → Export.</p>
                       </div>
                     )}
