@@ -906,6 +906,46 @@
     }
     return name;
   }
+  function parseTotalStorefrontProductsFromDOM() {
+    const selectors = [
+      ".s-desktop-toolbar .a-section span",
+      ".s-breadcrumb .a-section span",
+      "#search span.a-text-bold",
+      ".s-desktop-width-max .a-section span",
+      "span.a-color-state",
+      ".a-section.a-spacing-small span"
+    ];
+    for (const selector of selectors) {
+      const elements = document.querySelectorAll(selector);
+      for (const el of elements) {
+        const text = el.textContent.trim();
+        const match = text.match(/(?:of|over|about|)\s*([\d,]+)\s*(?:\+)?\s*results/i) || 
+                      text.match(/^([\d,]+)\s*results/i);
+        if (match) {
+          const count = parseInt(match[1].replace(/,/g, ""), 10);
+          if (!isNaN(count) && count > 0) {
+            return count;
+          }
+        }
+      }
+    }
+    const allSpans = document.querySelectorAll("span, div");
+    for (const el of allSpans) {
+      if (el.children.length === 0) {
+        const text = el.textContent.trim();
+        if (text.includes("results") && (text.includes("of") || text.includes("over"))) {
+          const match = text.match(/(?:of|over|about)\s+([\d,]+)\s+results/i);
+          if (match) {
+            const count = parseInt(match[1].replace(/,/g, ""), 10);
+            if (!isNaN(count) && count > 0) {
+              return count;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
 
   // ─── 11. Seller Storefront Auditor Overlay ──────────────────────────────────
   async function initSellerStorefrontWidget() {
@@ -1058,8 +1098,13 @@
           }
         }
 
+        const domCount = parseTotalStorefrontProductsFromDOM();
+        if (domCount && domCount > totalCount) {
+          totalCount = domCount;
+        }
+
         if (asinsToAnalyze.length > 0) {
-          document.getElementById("rs-sf-total-products").textContent = totalCount;
+          document.getElementById("rs-sf-total-products").textContent = totalCount.toLocaleString();
 
           // Batch fetch analysis details for the first 10 products to compute averages
           const sampleAsins = asinsToAnalyze.slice(0, 10);
