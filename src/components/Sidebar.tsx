@@ -9,7 +9,7 @@ import {
   Wrench, ChevronRight, ChevronLeft, Bell, Package, TrendingUp,
   ShieldCheck, RefreshCcw, Mail, Boxes, Zap, Cpu, QrCode, Link2,
   Sparkles, Target, BookOpen, FlaskConical, IndianRupee, Truck, ScanLine, Lock, UserCircle,
-  Upload, Store, Image as ImageIcon, ShoppingBag, Calculator, Download, LogOut, AlertTriangle
+  Upload, Store, Image as ImageIcon, ShoppingBag, Calculator, Download, LogOut, AlertTriangle, Video
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -82,6 +82,11 @@ const nav = [
     label: "Publish Products",
     icon: Upload,
     href: "/publish",
+  },
+  {
+    label: "UGC-Video",
+    icon: Video,
+    href: "https://chitraai.retailstacker.com",
   },
   {
     label: "Product Research",
@@ -192,6 +197,7 @@ export default function Sidebar({ plan = "Starter", user = "", role = "user" }: 
 
   const isActive = (href: string) => pathname === href;
   const hasAccess = (href: string, label: string) => {
+    if (href && href.startsWith("http")) return true;
     if (role === "admin") return true;
     const activePlan = plans.find(p => p.name === plan);
     if (!activePlan) {

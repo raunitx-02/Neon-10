@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X, Download } from "lucide-react";
 
 const NAV_LINKS = [
+  { label: "UGC-Video", href: "https://chitraai.retailstacker.com" },
   { label: "Pricing", href: "/pricing" },
   { label: "Resources", href: "/resources" },
   { label: "About Us", href: "/about" },
