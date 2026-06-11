@@ -89,6 +89,11 @@ const nav = [
     href: "https://ugc.retailstacker.com",
   },
   {
+    label: "ANVAY-AI",
+    icon: Cpu,
+    href: "https://anvayai.retailstacker.com",
+  },
+  {
     label: "Product Research",
     icon: Search,
     children: [
