@@ -9,7 +9,6 @@ const NAV_LINKS = [
   { label: "UGC-Video", href: "https://ugc.retailstacker.com" },
   { label: "ANVAY-AI", href: "https://anvayai.retailstacker.com" },
   { label: "Pricing", href: "/pricing" },
-  { label: "Resources", href: "/resources" },
   { label: "About Us", href: "/about" },
 ];
 
@@ -95,69 +94,49 @@ export default function PublicNavbar() {
       </Link>
 
       {/* Desktop Nav */}
-      <div className="public-nav-links" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        {NAV_LINKS.map(link => (
-          <Link
-            key={link.href}
-            href={link.href}
+      <div className="public-nav-links" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flex: 1, marginLeft: 48 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          {NAV_LINKS.map(link => (
+            <Link
+              key={link.href}
+              href={link.href}
+              style={{
+                textDecoration: "none",
+                padding: "8px 16px",
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                color: pathname === link.href ? "var(--accent)" : "var(--text-secondary)",
+                background: pathname === link.href ? "var(--accent-muted)" : "transparent",
+                transition: "all 0.2s",
+              }}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={handleDownload}
             style={{
               textDecoration: "none",
               padding: "8px 16px",
               borderRadius: 8,
               fontSize: 14,
               fontWeight: 600,
-              color: pathname === link.href ? "var(--accent)" : "var(--text-secondary)",
-              background: pathname === link.href ? "var(--accent-muted)" : "transparent",
-              transition: "all 0.2s",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
             }}
+            className="rs-download-btn"
           >
-            {link.label}
-          </Link>
-        ))}
-        <button
-          onClick={handleDownload}
-          style={{
-            textDecoration: "none",
-            padding: "8px 16px",
-            borderRadius: 8,
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: "pointer",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-          }}
-          className="rs-download-btn"
-        >
-          <Download size={15} />
-          Download Extension
-        </button>
-        {mounted && session?.loggedIn ? (
-          <Link href="/dashboard" style={{
-            textDecoration: "none",
-            padding: "9px 20px",
-            borderRadius: 10,
-            fontSize: 14,
-            fontWeight: 700,
-            color: "white",
-            background: "var(--accent)",
-            boxShadow: "0 4px 12px var(--accent-glow)",
-          }}>
-            Go to Dashboard
-          </Link>
-        ) : (
-          <>
-            <Link href="/login" style={{
-              textDecoration: "none",
-              padding: "8px 16px",
-              borderRadius: 8,
-              fontSize: 14,
-              fontWeight: 600,
-              color: "var(--text-secondary)",
-            }}>
-              Login
-            </Link>
-            <Link href="/login?mode=signup" style={{
+            <Download size={15} />
+            Download Extension
+          </button>
+          {mounted && session?.loggedIn ? (
+            <Link href="/dashboard" style={{
               textDecoration: "none",
               padding: "9px 20px",
               borderRadius: 10,
@@ -167,10 +146,35 @@ export default function PublicNavbar() {
               background: "var(--accent)",
               boxShadow: "0 4px 12px var(--accent-glow)",
             }}>
-              Get Started Free
+              Go to Dashboard
             </Link>
-          </>
-        )}
+          ) : (
+            <>
+              <Link href="/login" style={{
+                textDecoration: "none",
+                padding: "8px 16px",
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                color: "var(--text-secondary)",
+              }}>
+                Login
+              </Link>
+              <Link href="/login?mode=signup" style={{
+                textDecoration: "none",
+                padding: "9px 20px",
+                borderRadius: 10,
+                fontSize: 14,
+                fontWeight: 700,
+                color: "white",
+                background: "var(--accent)",
+                boxShadow: "0 4px 12px var(--accent-glow)",
+              }}>
+                Get Started Free
+              </Link>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Mobile Hamburger */}
